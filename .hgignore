@@ -1,0 +1,4 @@
+syntax: glob
+tools/BrechenEditor/obj/
+tools/BrechenEditor/bin/Debug/BrechenEditor.vshost.exe.manifest
+tools/BrechenEditor/BrechenEditor.suo.orig
