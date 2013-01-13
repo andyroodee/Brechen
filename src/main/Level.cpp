@@ -37,8 +37,8 @@ void Level::load(int levelNumber)
             brickRecord.g / 255.0f, brickRecord.b / 255.0f));
 
         brick->setTranslate(Vector(
-            BRICK_START_X + brickRecord.xPos * 8,
-            BRICK_START_Y + brickRecord.yPos * 8,
+            BRICK_START_X + brickRecord.xPos * 8 + brickRecord.width * 4,
+            BRICK_START_Y + brickRecord.yPos * 8 + brickRecord.height * 4,
             10.0f));
 
         m_bricks[index] = brick;

@@ -23,6 +23,7 @@ namespace BrechenEditor
         private Pen m_gridPen = new Pen(Color.FromArgb(64, Color.Black));
         private string m_fileName = string.Empty;
         private Brick[] m_gridPositions = null;
+        private bool m_eraserMode = false;
 
         public BrechenForm()
         {
@@ -30,6 +31,7 @@ namespace BrechenEditor
             m_originalImage = (Image)brickGrid.Image.Clone();
             brickGrid.MouseUp += new MouseEventHandler(brickGrid_MouseUp);
             brickGrid.MouseMove += new MouseEventHandler(brickGrid_MouseMove);
+            brickGrid.MouseDown += new MouseEventHandler(brickGrid_MouseDown);
             m_rows = CANVAS_HEIGHT / TILE_SIZE;
             m_cols = CANVAS_WIDTH / TILE_SIZE;
             m_gridPositions = new Brick[m_rows * m_cols];
@@ -39,44 +41,85 @@ namespace BrechenEditor
             paintBrickGrid();
         }
 
+        void brickGrid_MouseDown(object sender, MouseEventArgs e)
+        {
+            if (m_eraserMode)
+            {
+                EraseBrick(e.Location);
+            }
+        }
+
+        void EraseBrick(Point point)
+        {
+            Point clickLocation = point;
+            // Align to nearest grid location.
+            clickLocation.X = clickLocation.X & -TILE_SIZE;
+            clickLocation.Y = clickLocation.Y & -TILE_SIZE;
+
+            int clickIndex = clickLocation.Y / TILE_SIZE * m_cols + clickLocation.X / TILE_SIZE;
+            if (clickIndex < m_gridPositions.Length)
+            {
+                if (m_gridPositions[clickIndex] != null)
+                {
+                    Brick brickToErase = m_gridPositions[clickIndex];
+                    for (int i = brickToErase.Location.Y / TILE_SIZE; i < (brickToErase.Location.Y + brickToErase.Height) / TILE_SIZE; ++i)
+                    {
+                        for (int j = brickToErase.Location.X / TILE_SIZE; j < (brickToErase.Location.X + brickToErase.Width) / TILE_SIZE; ++j)
+                        {
+                            m_gridPositions[i * m_cols + j] = null;
+                        }
+                    }
+                    bricks.Remove(brickToErase);
+                    paintBrickGrid();
+                }                
+            }
+        }
+
         void brickGrid_MouseMove(object sender, MouseEventArgs e)
         {
             if (e.Button == MouseButtons.Left)
             {
-                // If there isn't a brick here, draw one.
-                Point clickLocation = e.Location;
-                // Align to nearest grid location.
-                clickLocation.X = clickLocation.X & -TILE_SIZE;
-                clickLocation.Y = clickLocation.Y & -TILE_SIZE;
-                // Is there already a brick occupying this position? If so, delete it.
-                int clickIndex = clickLocation.Y / TILE_SIZE * m_cols + clickLocation.X / TILE_SIZE;
-                if (clickIndex < m_gridPositions.Length)
+                if (m_eraserMode)
                 {
-                    // Check that the region is clear
-                    bool regionClear = true;
-                    for (int i = clickLocation.Y / TILE_SIZE; i < (clickLocation.Y + previewBrick.Height) / TILE_SIZE && regionClear; ++i)
+                    EraseBrick(e.Location);
+                }
+                else
+                {
+                    // If there isn't a brick here, draw one.
+                    Point clickLocation = e.Location;
+                    // Align to nearest grid location.
+                    clickLocation.X = clickLocation.X & -TILE_SIZE;
+                    clickLocation.Y = clickLocation.Y & -TILE_SIZE;
+                    // Is there already a brick occupying this position? If so, delete it.
+                    int clickIndex = clickLocation.Y / TILE_SIZE * m_cols + clickLocation.X / TILE_SIZE;
+                    if (clickIndex < m_gridPositions.Length)
                     {
-                        for (int j = clickLocation.X / TILE_SIZE; j < (clickLocation.X + previewBrick.Width) / TILE_SIZE && regionClear; ++j)
+                        // Check that the region is clear
+                        bool regionClear = true;
+                        for (int i = clickLocation.Y / TILE_SIZE; i < (clickLocation.Y + previewBrick.Height) / TILE_SIZE && regionClear; ++i)
                         {
-                            if (m_gridPositions[i * m_cols + j] != null)
+                            for (int j = clickLocation.X / TILE_SIZE; j < (clickLocation.X + previewBrick.Width) / TILE_SIZE && regionClear; ++j)
                             {
-                                regionClear = false;
-                                break;
+                                if (m_gridPositions[i * m_cols + j] != null)
+                                {
+                                    regionClear = false;
+                                    break;
+                                }
                             }
                         }
-                    }
-                    if (regionClear)
-                    {
-                        Brick brick = new Brick(previewBrick.Width, previewBrick.Height, clickLocation, previewBrick.Color);
-                        for (int i = brick.Location.Y / TILE_SIZE; i < (brick.Location.Y + brick.Height) / TILE_SIZE; ++i)
+                        if (regionClear)
                         {
-                            for (int j = brick.Location.X / TILE_SIZE; j < (brick.Location.X + brick.Width) / TILE_SIZE; ++j)
+                            Brick brick = new Brick(previewBrick.Width, previewBrick.Height, clickLocation, previewBrick.Color);
+                            for (int i = brick.Location.Y / TILE_SIZE; i < (brick.Location.Y + brick.Height) / TILE_SIZE; ++i)
                             {
-                                m_gridPositions[i * m_cols + j] = brick;
+                                for (int j = brick.Location.X / TILE_SIZE; j < (brick.Location.X + brick.Width) / TILE_SIZE; ++j)
+                                {
+                                    m_gridPositions[i * m_cols + j] = brick;
+                                }
                             }
+                            bricks.Add(brick);
+                            paintBrickGrid();
                         }
-                        bricks.Add(brick);
-                        paintBrickGrid();
                     }
                 }
             }
@@ -116,30 +159,33 @@ namespace BrechenEditor
 
         void brickGrid_MouseUp(object sender, MouseEventArgs e)
         {
-            // Draw a brick here
-            Point clickLocation = e.Location;
-            // Align to nearest grid location.
-            clickLocation.X = clickLocation.X & -TILE_SIZE;
-            clickLocation.Y = clickLocation.Y & -TILE_SIZE;
-            // Is there already a brick occupying this position? If so, delete it.
-            int clickIndex = clickLocation.Y / TILE_SIZE * m_cols + clickLocation.X / TILE_SIZE;
-            if (clickIndex < m_gridPositions.Length)
+            if (!m_eraserMode)
             {
-                Brick brick = new Brick(previewBrick.Width, previewBrick.Height, clickLocation, previewBrick.Color);
-                for (int i = brick.Location.Y / TILE_SIZE; i < (brick.Location.Y + brick.Height) / TILE_SIZE; ++i)
+                // Draw a brick here
+                Point clickLocation = e.Location;
+                // Align to nearest grid location.
+                clickLocation.X = clickLocation.X & -TILE_SIZE;
+                clickLocation.Y = clickLocation.Y & -TILE_SIZE;
+                // Is there already a brick occupying this position? If so, delete it.
+                int clickIndex = clickLocation.Y / TILE_SIZE * m_cols + clickLocation.X / TILE_SIZE;
+                if (clickIndex < m_gridPositions.Length)
                 {
-                    for (int j = brick.Location.X / TILE_SIZE; j < (brick.Location.X + brick.Width) / TILE_SIZE; ++j)
+                    Brick brick = new Brick(previewBrick.Width, previewBrick.Height, clickLocation, previewBrick.Color);
+                    for (int i = brick.Location.Y / TILE_SIZE; i < (brick.Location.Y + brick.Height) / TILE_SIZE; ++i)
                     {
-                        int index = i * m_cols + j;
-                        if (m_gridPositions[index] != null && m_gridPositions[index] != brick)
+                        for (int j = brick.Location.X / TILE_SIZE; j < (brick.Location.X + brick.Width) / TILE_SIZE; ++j)
                         {
-                            bricks.Remove(m_gridPositions[index]);
+                            int index = i * m_cols + j;
+                            if (m_gridPositions[index] != null && m_gridPositions[index] != brick)
+                            {
+                                bricks.Remove(m_gridPositions[index]);
+                            }
+                            m_gridPositions[index] = brick;
                         }
-                        m_gridPositions[index] = brick;
                     }
+                    bricks.Add(brick);
+                    paintBrickGrid();
                 }
-                bricks.Add(brick);
-                paintBrickGrid();
             }
         }
 
@@ -244,9 +290,9 @@ namespace BrechenEditor
                             int height = (int)reader.ReadByte() * TILE_SIZE;
                             Color color = Color.FromArgb(reader.ReadInt32());
                             Brick brick = new Brick(width, height, new Point(xPos, yPos), color);
-                            for (int i = brick.Location.Y / TILE_SIZE; i < brick.Height / TILE_SIZE; ++i)
+                            for (int i = brick.Location.Y / TILE_SIZE; i < (brick.Location.Y + brick.Height) / TILE_SIZE; ++i)
                             {
-                                for (int j = brick.Location.X / TILE_SIZE; j < brick.Width / TILE_SIZE; ++j)
+                                for (int j = brick.Location.X / TILE_SIZE; j < (brick.Location.X + brick.Width) / TILE_SIZE; ++j)
                                 {
                                     m_gridPositions[i * m_cols + j] = brick;
                                 }
@@ -283,6 +329,17 @@ namespace BrechenEditor
                     saveFile();
                 }
             }
+        }
+
+        private void toolStripMenuItem1_Click(object sender, EventArgs e)
+        {
+            m_fileName = string.Empty;
+            resetGrid();
+        }
+
+        private void eraserCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            m_eraserMode = eraserCheckBox.Checked;
         }
     }
 }

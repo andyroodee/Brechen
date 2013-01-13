@@ -46,6 +46,8 @@ void Brick::draw(int list)
     pvr_prim(&hdr, sizeof(hdr));
 
     vert.flags = PVR_CMD_VERTEX;
+    //vert.x = ((int)pos.x - m_width/2) & -8;
+    //vert.y = ((int)pos.y + m_height/2) & -8;
     vert.x = pos.x - m_width/2;
     vert.y = pos.y + m_height/2;
     vert.z = 10.0f;
@@ -55,14 +57,18 @@ void Brick::draw(int list)
     vert.oargb = 0;
     pvr_prim(&vert, sizeof(vert));
 
+    //vert.y = ((int)pos.y - m_height/2) & -8;
     vert.y = pos.y - m_height/2;
     pvr_prim(&vert, sizeof(vert));
  
+    //vert.x = ((int)pos.x + m_width/2) & -8;
+    //vert.y = ((int)pos.y + m_height/2) & -8;
     vert.x = pos.x + m_width/2;
     vert.y = pos.y + m_height/2;
     pvr_prim(&vert, sizeof(vert));
 
     vert.flags = PVR_CMD_VERTEX_EOL;
+    //vert.y = ((int)pos.y - m_height/2) & -8;
     vert.y = pos.y - m_height/2;
     pvr_prim(&vert, sizeof(vert));
 }
