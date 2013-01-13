@@ -6,10 +6,7 @@
 class Brick : public Drawable
 {
 public:
-    static const int BRICK_WIDTH = 36;
-    static const int BRICK_HEIGHT = 12;
-
-    Brick();
+    Brick(int width, int height);
 
     virtual ~Brick() {}
 
@@ -27,8 +24,30 @@ public:
         return m_type;
     }
 
+    int getWidth() const
+    {
+        return m_width;
+    }
+
+    void setWidth(int width)
+    {
+        m_width = width;
+    }
+
+    int getHeight() const
+    {
+        return m_height;
+    }
+
+    void setHeight(int height)
+    {
+        m_height = height;
+    }
+
 private:
     unsigned char m_type;
+    int m_width;
+    int m_height;
 };
 
 #endif

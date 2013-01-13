@@ -13,8 +13,8 @@ public:
     static const int BRICK_COUNT_Y = 18;
 
     // Where the bricks start drawing, in screen pixel coordinates.
-    static const float BRICK_START_X = 320 - (BRICK_COUNT_X * Brick::BRICK_WIDTH / 2.0f) + Brick::BRICK_WIDTH / 2.0f - (BRICK_COUNT_X - 1);
-    static const float BRICK_START_Y = 100.0f + Brick::BRICK_HEIGHT/2;
+    static const int BRICK_START_X = 32;
+    static const int BRICK_START_Y = 64;
 
     void load(int levelNumber);
 

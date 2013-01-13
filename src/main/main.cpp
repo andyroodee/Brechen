@@ -130,7 +130,7 @@ int main(int argc, char** argv)
     sc->subAdd(ball);
 
     Level level;
-    level.load(3);
+    level.load(1);
     level.addToScene(sc);
 
     bool done = false;

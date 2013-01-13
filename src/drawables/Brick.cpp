@@ -1,14 +1,16 @@
 #include "Brick.h"
 
-Brick::Brick()
+Brick::Brick(int width, int height)
 {
+    m_width = width;
+    m_height = height;
 }
 
 void Brick::setType(unsigned char type)
 {
     m_type = type;
     // Colour based on type. 
-    switch (m_type)
+    /*switch (m_type)
     {
     case '1':
         setTint(Color(1.0f, 0.0f, 1.0f, 0.0f));
@@ -22,7 +24,7 @@ void Brick::setType(unsigned char type)
     default:
         setTint(Color(0.0f, 0.0f, 0.0f, 0.0f));
         break;
-    }
+    }*/
 }
 
 void Brick::draw(int list)
@@ -44,8 +46,8 @@ void Brick::draw(int list)
     pvr_prim(&hdr, sizeof(hdr));
 
     vert.flags = PVR_CMD_VERTEX;
-    vert.x = pos.x - BRICK_WIDTH/2;
-    vert.y = pos.y + BRICK_HEIGHT/2;
+    vert.x = pos.x - m_width/2;
+    vert.y = pos.y + m_height/2;
     vert.z = 10.0f;
     vert.u = 0;
     vert.v = 0;
@@ -53,14 +55,14 @@ void Brick::draw(int list)
     vert.oargb = 0;
     pvr_prim(&vert, sizeof(vert));
 
-    vert.y = pos.y - BRICK_HEIGHT/2;
+    vert.y = pos.y - m_height/2;
     pvr_prim(&vert, sizeof(vert));
  
-    vert.x = pos.x + BRICK_WIDTH/2;
-    vert.y = pos.y + BRICK_HEIGHT/2;
+    vert.x = pos.x + m_width/2;
+    vert.y = pos.y + m_height/2;
     pvr_prim(&vert, sizeof(vert));
 
     vert.flags = PVR_CMD_VERTEX_EOL;
-    vert.y = pos.y - BRICK_HEIGHT/2;
+    vert.y = pos.y - m_height/2;
     pvr_prim(&vert, sizeof(vert));
 }
