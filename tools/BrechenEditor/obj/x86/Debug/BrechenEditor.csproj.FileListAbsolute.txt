@@ -1,9 +1,0 @@
-Y:\1gam\Brechen\tools\BrechenEditor\obj\x86\Debug\ResolveAssemblyReference.cache
-Y:\1gam\Brechen\tools\BrechenEditor\obj\x86\Debug\BrechenEditor.BrechenForm.resources
-Y:\1gam\Brechen\tools\BrechenEditor\obj\x86\Debug\BrechenEditor.Properties.Resources.resources
-Y:\1gam\Brechen\tools\BrechenEditor\obj\x86\Debug\GenerateResource.read.1.tlog
-Y:\1gam\Brechen\tools\BrechenEditor\obj\x86\Debug\GenerateResource.write.1.tlog
-Y:\1gam\Brechen\tools\BrechenEditor\bin\Debug\BrechenEditor.exe
-Y:\1gam\Brechen\tools\BrechenEditor\bin\Debug\BrechenEditor.pdb
-Y:\1gam\Brechen\tools\BrechenEditor\obj\x86\Debug\BrechenEditor.exe
-Y:\1gam\Brechen\tools\BrechenEditor\obj\x86\Debug\BrechenEditor.pdb

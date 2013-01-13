@@ -1,4 +1,5 @@
 #include "Level.h"
+#include <math.h>
 
 struct BrickRecord
 {
@@ -15,13 +16,9 @@ struct BrickRecord
 void Level::load(int levelNumber)
 {
     char levelName[256];
-    sprintf(levelName, "/cd/data/%s%d.txt", "level", levelNumber);
+    sprintf(levelName, "/cd/levels/%s%d", "level", levelNumber);
 
     FILE* file = fopen(levelName, "rb");
-    
-   // unsigned char brickValues[BRICK_COUNT_X * BRICK_COUNT_Y];
-    //fread(brickValues, sizeof(unsigned char), BRICK_COUNT_X * BRICK_COUNT_Y, file);
-    // Each brick record is 8 bytes
    
     int index = 0;
     BrickRecord brickRecord;
@@ -29,11 +26,19 @@ void Level::load(int levelNumber)
     {        
         RefPtr<Brick> brick = new Brick(brickRecord.width * 8, brickRecord.height * 8);     
         brick->setType('1');
+
+        // GPU is not happy to recieve 0 / 255 for a color value!
+        if (brickRecord.a < 1) brickRecord.a = 1;
+        if (brickRecord.r < 1) brickRecord.r = 1;
+        if (brickRecord.g < 1) brickRecord.g = 1;
+        if (brickRecord.b < 1) brickRecord.b = 1;
+
         brick->setTint(Color(brickRecord.a / 255.0f, brickRecord.r / 255.0f,
             brickRecord.g / 255.0f, brickRecord.b / 255.0f));
+
         brick->setTranslate(Vector(
-            BRICK_START_X + brickRecord.xPos * 8 + 1,
-            BRICK_START_Y + brickRecord.yPos * 8 + 1,
+            BRICK_START_X + brickRecord.xPos * 8,
+            BRICK_START_Y + brickRecord.yPos * 8,
             10.0f));
 
         m_bricks[index] = brick;
@@ -41,24 +46,6 @@ void Level::load(int levelNumber)
     }
     
     fclose(file);
-
-    /*const int DEFAULT_BRICK_WIDTH = 36;
-    const int DEFAULT_BRICK_HEIGHT = 12;
-
-    // Fill out the actual Brick data
-    for (int i = 0; i < BRICK_COUNT_Y; ++i)
-    {
-        for (int j = 0; j < BRICK_COUNT_X; ++j)
-        {
-            int index = i * BRICK_COUNT_X + j;
-            m_bricks[index] = new Brick(DEFAULT_BRICK_WIDTH, DEFAULT_BRICK_HEIGHT);
-            m_bricks[index]->setType(brickValues[index]);
-            m_bricks[index]->setTranslate(Vector(
-                BRICK_START_X + j * (DEFAULT_BRICK_WIDTH+1), 
-                BRICK_START_Y + i * (DEFAULT_BRICK_HEIGHT+1), 
-                10.0f));
-        }
-    }*/
 }
 
 int Level::CheckCollision(Ball* ball)
@@ -79,30 +66,18 @@ int Level::CheckCollision(Ball* ball)
         if (brick->getType() != '0')
         {
             const Vector& brickPosition = brick->getPosition();
-            int halfBrickHeight = brick->getHeight() / 2;
-            int halfBrickWidth = brick->getWidth() / 2;
 
-            if (ballPosition.y - HALF_BALL_HEIGHT <= brickPosition.y + halfBrickHeight &&
-                ballPosition.y + HALF_BALL_HEIGHT >= brickPosition.y - halfBrickHeight)
+            if (fabs(ballPosition.y - brickPosition.y) <= brick->getHeight() && 
+                fabs(ballPosition.x - brickPosition.x) <= brick->getWidth())
             {
-                // We're lined up on the Y axis. Are we also within the X bounds?
-                if (ballPosition.x + HALF_BALL_WIDTH >= brickPosition.x - halfBrickHeight && 
-                    ballPosition.x - HALF_BALL_WIDTH <= brickPosition.x + halfBrickHeight)
-                {
-                    //ball->setVelocity(-ball->getVelocity());
-                    //Vector velocity = ball->getVelocity();
-                    //velocity.x = -velocity.x;
-                    //ball->setVelocity(velocity);
+                Vector hyp = brickPosition - ballPosition;
+                hyp.normalizeSelf();
+                hyp *= ball->getSpeed();
+                ball->setVelocity(-hyp); 
 
-                    Vector hyp = brickPosition - ballPosition;
-                    hyp.normalizeSelf();
-                    hyp *= ball->getSpeed();
-                    ball->setVelocity(-hyp); 
-
-                    brick->setType('0');
-                    brick->getParent()->subRemove(brick);
-                    score += 20;
-                }
+                brick->setType('0');
+                brick->getParent()->subRemove(brick);                    
+                score += 20;
             }
         }
     }

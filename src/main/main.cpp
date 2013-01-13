@@ -12,6 +12,9 @@
 #include "../drawables/Ball.h"
 #include "Level.h"
 
+extern uint8 romdisk[];
+KOS_INIT_ROMDISK(romdisk);
+
 KOS_INIT_FLAGS(INIT_DEFAULT | INIT_NO_DCLOAD | INIT_QUIET);
 
 struct GameData
@@ -57,21 +60,7 @@ void CheckCollisions(Ball* ball, Paddle* paddle, Level& level)
         if (ballPosition.x + HALF_BALL_WIDTH >= thePaddlePosition.x - HALF_PADDLE_WIDTH && 
             ballPosition.x - HALF_BALL_WIDTH <= thePaddlePosition.x + HALF_PADDLE_WIDTH)
         {
-            // Umm...
-            // How far off center are we?
-            /*float xDiff = ballPosition.x - thePaddlePosition.x;
-            Vector newVelocity = -ball->getVelocity();
-            newVelocity.x = xDiff;
-            ball->setVelocity(newVelocity);*/
-
-            Vector hyp = thePaddlePosition - ballPosition;
-            float hypLength = hyp.length();
-
-            Vector adj = Vector(thePaddlePosition.x, ballPosition.y, ballPosition.z);
-            float adjLength = adj.length();
-
-            float angle = acos(adjLength / hypLength);
-
+            Vector hyp = thePaddlePosition - ballPosition;   
             hyp.normalizeSelf();
             hyp *= ball->getSpeed();
             ball->setVelocity(-hyp);            
@@ -100,7 +89,7 @@ int main(int argc, char** argv)
     sprintf(scoreString, "%s%d", "Score: ", gameData.score);
 
     RefPtr<Scene> sc = new Scene();
-    RefPtr<Font> fnt = new Font("/cd/data/typewriter.txf");
+    RefPtr<Font> fnt = new Font("/rd/typewriter.txf");
     fnt->setColor(0.1f, 0.4f, 0.9f);
     RefPtr<Label> scoreLabel = new Label(fnt, scoreString, 16, false, false);
     scoreLabel->setTranslate(Vector(30.0f, 30.0f, 10.0f));
@@ -118,19 +107,13 @@ int main(int argc, char** argv)
     paddle->setSpeed(5.0f);
     sc->subAdd(paddle);
 
-    // And a brick
-    //RefPtr<Brick> brick = new Brick();
-   // brick->setTranslate(Vector(120, 120, 20));
-    //brick->setTint(Color(1.0f, 0.0f, 0.2f, 0.8f));
-    //sc->subAdd(brick);
-
-    RefPtr<Texture> ballTexture = new Texture("/cd/data/ball.png", true);
+    RefPtr<Texture> ballTexture = new Texture("/rd/ball.png", true);
     RefPtr<Ball> ball = new Ball(ballTexture);
     ball->setTranslate(paddlePosition + Vector(0.0f, -16.0f, 0.0f));
     sc->subAdd(ball);
 
     Level level;
-    level.load(1);
+    level.load(4);
     level.addToScene(sc);
 
     bool done = false;
@@ -159,22 +142,8 @@ int main(int argc, char** argv)
             scoreLabel->setText(scoreString);
         }
 
-        // Check the bricks.
-        //level.CheckCollision(ball);
-
         MAPLE_FOREACH_BEGIN(MAPLE_FUNC_CONTROLLER, cont_state_t, t)
-
-        if (t->buttons & CONT_START)
-        {            
-            //const Vector pos = paddle->getTranslate();
-            //sprintf(scoreString, "%s(%f,%f,%f)", "Paddle position: ", pos.x, pos.y, pos.z);
-            //Color color = paddle->getColor();
-            //sprintf(scoreString, "%s(%f,%f,%f,%f)", "Paddle color: ", color.a, color.r, color.g, color.b);
-            //sprintf(scoreString, "%d", paddle->getWasDrawn());
-            //scoreLabel->setText(scoreString);
-            //done = true;
-        }   
-
+            
         if (t->buttons & CONT_A)
         {
             if (!ball->getIsLaunched())

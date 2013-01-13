@@ -57,8 +57,8 @@ private:
     Vector m_velocity;
     RefPtr<Texture>	m_texture;
 
-	float	m_u1, m_v1, m_u2, m_v2;
-	float	m_u3, m_v3, m_u4, m_v4;
+	float m_u1, m_v1, m_u2, m_v2;
+	float m_u3, m_v3, m_u4, m_v4;
 };
 
 #endif

@@ -1,9 +1,0 @@
-Y:\1gam\Brechen\tools\BrechenEditor\bin\Release\BrechenEditor.exe
-Y:\1gam\Brechen\tools\BrechenEditor\bin\Release\BrechenEditor.pdb
-Y:\1gam\Brechen\tools\BrechenEditor\obj\x86\Release\ResolveAssemblyReference.cache
-Y:\1gam\Brechen\tools\BrechenEditor\obj\x86\Release\BrechenEditor.BrechenForm.resources
-Y:\1gam\Brechen\tools\BrechenEditor\obj\x86\Release\BrechenEditor.Properties.Resources.resources
-Y:\1gam\Brechen\tools\BrechenEditor\obj\x86\Release\GenerateResource.read.1.tlog
-Y:\1gam\Brechen\tools\BrechenEditor\obj\x86\Release\GenerateResource.write.1.tlog
-Y:\1gam\Brechen\tools\BrechenEditor\obj\x86\Release\BrechenEditor.exe
-Y:\1gam\Brechen\tools\BrechenEditor\obj\x86\Release\BrechenEditor.pdb

@@ -5,7 +5,7 @@ Ball::Ball(Texture* texture)
     m_isLaunched = false;
     m_texture = texture;
     m_radius = 2.0f;
-    m_speed = 3.0f;
+    m_speed = 6.0f;
     m_velocity = Vector(0.0f, 0.0f, 0.0f);
     m_u1 = m_v2 = 0.0f;
 	m_u2 = m_v4 = 0.0f;
@@ -19,7 +19,7 @@ void Ball::launch()
     {
         m_isLaunched = true;
         // Start moving!
-        m_velocity = Vector(0.0f, -2.0f, 0.0f);
+        m_velocity = Vector(0.0f, -m_speed, 0.0f);
     }
 }
 
@@ -45,7 +45,8 @@ void Ball::draw(int list)
 	if (list == PLX_LIST_TR_POLY) {
 		vert.argb = getColor();
 	} else {
-		Color t = getColor(); t.a = 1.0f;
+		Color t = getColor(); 
+        t.a = 1.0f;
 		vert.argb = t;
 	}
 	vert.oargb = 0;
