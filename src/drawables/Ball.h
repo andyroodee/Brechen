@@ -21,11 +21,17 @@ public:
         Drawable::nextFrame();
     }
 
+    void reset()
+    {
+        m_isLaunched = false;
+        setSpeed(6.0f);
+    }
+
     bool getIsLaunched() const
     {
         return m_isLaunched;
     }
-
+    
     void launch();
 
     const Vector getVelocity() const

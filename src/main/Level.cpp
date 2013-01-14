@@ -13,6 +13,17 @@ struct BrickRecord
     unsigned char a;
 };
 
+Level::Level()
+{
+    m_brickCount = 0;
+    m_destroyedBrickCount = 0;
+}
+
+bool Level::isCompleted() const
+{
+    return (m_brickCount == m_destroyedBrickCount);
+}
+
 void Level::load(int levelNumber)
 {
     char levelName[256];
@@ -41,11 +52,15 @@ void Level::load(int levelNumber)
             BRICK_START_Y + brickRecord.yPos * 8 + brickRecord.height * 4,
             10.0f));
 
-        m_bricks[index] = brick;
-        index++;
+        m_bricks[index++] = brick;
+        ++m_brickCount;
     }
     
     fclose(file);
+}
+
+void Level::unload()
+{
 }
 
 int Level::CheckCollision(Ball* ball)
@@ -78,6 +93,7 @@ int Level::CheckCollision(Ball* ball)
                 brick->setType('0');
                 brick->getParent()->subRemove(brick);                    
                 score += 20;
+                ++m_destroyedBrickCount;
             }
         }
     }

@@ -71,6 +71,10 @@ void CheckCollisions(Ball* ball, Paddle* paddle, Level& level)
     gameData.score += level.CheckCollision(ball);
 }
 
+void nextLevel()
+{    
+}
+
 int main(int argc, char** argv)
 {
     //snd_stream_init();
@@ -78,22 +82,32 @@ int main(int argc, char** argv)
 
    // sndoggvorbis_start("/cd/data/scheme.ogg", 0);
 
-    pvr_init_defaults();
-
-    
-    gameData.score = 0;
-    gameData.level = 1;
-    gameData.lives = 3;
-    
-    char scoreString[256];
-    sprintf(scoreString, "%s%d", "Score: ", gameData.score);
+    pvr_init_defaults();    
 
     RefPtr<Scene> sc = new Scene();
     RefPtr<Font> fnt = new Font("/rd/typewriter.txf");
     fnt->setColor(0.1f, 0.4f, 0.9f);
+        
+    gameData.score = 0;
+    char scoreString[256];
+    sprintf(scoreString, "%s%d", "Score: ", gameData.score);
     RefPtr<Label> scoreLabel = new Label(fnt, scoreString, 16, false, false);
-    scoreLabel->setTranslate(Vector(30.0f, 30.0f, 10.0f));
+    scoreLabel->setTranslate(Vector(80.0f, 40.0f, 10.0f));
     sc->subAdd(scoreLabel);    
+    
+    gameData.level = 1;
+    char levelString[256];
+    sprintf(levelString, "%s%d", "Level: ", gameData.level);
+    RefPtr<Label> levelLabel = new Label(fnt, levelString, 16, false, false);
+    levelLabel->setTranslate(Vector(240.0f, 40.0f, 10.0f));
+    sc->subAdd(levelLabel);    
+    
+    gameData.lives = 3;
+    char livesString[256];
+    sprintf(livesString, "%s%d", "Lives: ", gameData.lives);
+    RefPtr<Label> livesLabel = new Label(fnt, livesString, 16, false, false);
+    livesLabel->setTranslate(Vector(450.0f, 40.0f, 10.0f));
+    sc->subAdd(livesLabel);        
 
     pvr_set_bg_color(0.0f, 0.0f, 0.2f);
     Vector scorePosition = Vector(30.0f, 30.0f, 10.0f);
@@ -113,7 +127,7 @@ int main(int argc, char** argv)
     sc->subAdd(ball);
 
     Level level;
-    level.load(2);
+    level.load(gameData.level);
     level.addToScene(sc);
 
     bool done = false;
@@ -140,6 +154,16 @@ int main(int argc, char** argv)
         {
             sprintf(scoreString, "%s%d", "Score: ", gameData.score);
             scoreLabel->setText(scoreString);
+        }
+
+        if (level.isCompleted())
+        {
+            ++gameData.level;
+            level.load(gameData.level);
+            level.addToScene(sc);
+            ball->reset();
+            sprintf(levelString, "%s%d", "Level: ", gameData.level);
+            levelLabel->setText(levelString);
         }
 
         MAPLE_FOREACH_BEGIN(MAPLE_FUNC_CONTROLLER, cont_state_t, t)
