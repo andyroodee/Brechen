@@ -37,6 +37,7 @@ void CheckCollisions(Ball* ball, Paddle* paddle, Level& level)
         Vector velocity = ball->getVelocity();
         velocity.x = -velocity.x;
         ball->setVelocity(velocity);
+        //ball->setTranslate(Vector(296.0f, 400.0f, 10.0f));
         return;
     }
 
@@ -46,6 +47,7 @@ void CheckCollisions(Ball* ball, Paddle* paddle, Level& level)
         Vector velocity = ball->getVelocity();
         velocity.y = -velocity.y;
         ball->setVelocity(velocity);
+        //ball->setTranslate(Vector(296.0f, 400.0f, 10.0f));
         return;
     }
 
@@ -129,7 +131,7 @@ int main(int argc, char** argv)
     Level level;
     level.load(gameData.level);
     level.addToScene(sc);
-
+    
     bool done = false;
     while (!done) 
     {
@@ -157,7 +159,7 @@ int main(int argc, char** argv)
         }
 
         if (level.isCompleted())
-        {
+        {            
             ++gameData.level;
             level.load(gameData.level);
             level.addToScene(sc);

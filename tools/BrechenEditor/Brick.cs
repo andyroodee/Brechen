@@ -6,7 +6,7 @@ using System.Drawing;
 
 namespace BrechenEditor
 {
-    class Brick
+    public class Brick
     {
         public Brick(int width, int height, Point location, Color color)
         {

@@ -15,6 +15,7 @@ struct BrickRecord
 
 Level::Level()
 {
+    m_bricks = 0;
     m_brickCount = 0;
     m_destroyedBrickCount = 0;
 }
@@ -26,14 +27,20 @@ bool Level::isCompleted() const
 
 void Level::load(int levelNumber)
 {
+    unload();
+
     char levelName[256];
     sprintf(levelName, "/cd/levels/%s%d", "level", levelNumber);
 
     FILE* file = fopen(levelName, "rb");
    
-    int index = 0;
+    int numberOfBrickRecords = 0;
+    fread(&numberOfBrickRecords, sizeof(int), 1, file);
+   
+    m_bricks = new RefPtr<Brick>[numberOfBrickRecords];
+
     BrickRecord brickRecord;
-    while (fread(&brickRecord, sizeof(BrickRecord), 1, file))
+    while (m_brickCount < numberOfBrickRecords && fread(&brickRecord, sizeof(BrickRecord), 1, file))
     {        
         RefPtr<Brick> brick = new Brick(brickRecord.width * 8, brickRecord.height * 8);     
         brick->setType('1');
@@ -52,15 +59,20 @@ void Level::load(int levelNumber)
             BRICK_START_Y + brickRecord.yPos * 8 + brickRecord.height * 4,
             10.0f));
 
-        m_bricks[index++] = brick;
-        ++m_brickCount;
+        m_bricks[m_brickCount++] = brick;
     }
-    
+
     fclose(file);
 }
 
 void Level::unload()
 {
+    if (m_bricks)
+    {
+        delete [] m_bricks;
+    }
+    m_brickCount = 0;
+    m_destroyedBrickCount = 0;
 }
 
 int Level::CheckCollision(Ball* ball)
@@ -71,7 +83,7 @@ int Level::CheckCollision(Ball* ball)
 
     int score = 0;
 
-    for (int i = 0; i < BRICK_COUNT_Y * BRICK_COUNT_X; ++i)
+    for (int i = 0; i < m_brickCount; ++i)
     {
         if (!m_bricks[i])
         {
@@ -88,12 +100,12 @@ int Level::CheckCollision(Ball* ball)
                 Vector hyp = brickPosition - ballPosition;
                 hyp.normalizeSelf();
                 hyp *= ball->getSpeed();
-                ball->setVelocity(-hyp); 
+                //ball->setVelocity(-hyp); 
 
                 brick->setType('0');
                 brick->getParent()->subRemove(brick);                    
                 score += 20;
-                ++m_destroyedBrickCount;
+                ++m_destroyedBrickCount;                
             }
         }
     }
@@ -103,7 +115,7 @@ int Level::CheckCollision(Ball* ball)
 
 void Level::addToScene(RefPtr<Scene> scene)
 {
-    for (int i = 0; i < BRICK_COUNT_Y * BRICK_COUNT_X; ++i)
+    for (int i = 0; i < m_brickCount; ++i)
     {
         if (m_bricks[i])            
         {

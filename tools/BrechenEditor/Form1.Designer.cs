@@ -31,6 +31,7 @@
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.brickGrid = new System.Windows.Forms.PictureBox();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
+            this.eraserCheckBox = new System.Windows.Forms.CheckBox();
             this.groupBox3 = new System.Windows.Forms.GroupBox();
             this.brickPreview = new System.Windows.Forms.Panel();
             this.colourPanel = new System.Windows.Forms.Panel();
@@ -42,7 +43,9 @@
             this.brickWidthComboBox = new System.Windows.Forms.ComboBox();
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.newFile = new System.Windows.Forms.ToolStripMenuItem();
             this.openToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
             this.saveToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.saveAsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
@@ -52,9 +55,8 @@
             this.brickColourDialog = new System.Windows.Forms.ColorDialog();
             this.saveAsFileDialog = new System.Windows.Forms.SaveFileDialog();
             this.openFileDialog = new System.Windows.Forms.OpenFileDialog();
-            this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
-            this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
-            this.eraserCheckBox = new System.Windows.Forms.CheckBox();
+            this.vertexCountLabel = new System.Windows.Forms.Label();
+            this.vertexCount = new System.Windows.Forms.Label();
             this.groupBox1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.brickGrid)).BeginInit();
             this.groupBox2.SuspendLayout();
@@ -64,6 +66,8 @@
             // 
             // groupBox1
             // 
+            this.groupBox1.Controls.Add(this.vertexCount);
+            this.groupBox1.Controls.Add(this.vertexCountLabel);
             this.groupBox1.Controls.Add(this.brickGrid);
             this.groupBox1.Location = new System.Drawing.Point(12, 50);
             this.groupBox1.Name = "groupBox1";
@@ -98,6 +102,17 @@
             this.groupBox2.TabIndex = 2;
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "Brick Properties";
+            // 
+            // eraserCheckBox
+            // 
+            this.eraserCheckBox.AutoSize = true;
+            this.eraserCheckBox.Location = new System.Drawing.Point(6, 19);
+            this.eraserCheckBox.Name = "eraserCheckBox";
+            this.eraserCheckBox.Size = new System.Drawing.Size(56, 17);
+            this.eraserCheckBox.TabIndex = 8;
+            this.eraserCheckBox.Text = "Eraser";
+            this.eraserCheckBox.UseVisualStyleBackColor = true;
+            this.eraserCheckBox.CheckedChanged += new System.EventHandler(this.eraserCheckBox_CheckedChanged);
             // 
             // groupBox3
             // 
@@ -214,7 +229,7 @@
             // fileToolStripMenuItem
             // 
             this.fileToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.toolStripMenuItem1,
+            this.newFile,
             this.openToolStripMenuItem,
             this.toolStripSeparator2,
             this.saveToolStripMenuItem,
@@ -225,12 +240,24 @@
             this.fileToolStripMenuItem.Size = new System.Drawing.Size(37, 20);
             this.fileToolStripMenuItem.Text = "File";
             // 
+            // newFile
+            // 
+            this.newFile.Name = "newFile";
+            this.newFile.Size = new System.Drawing.Size(152, 22);
+            this.newFile.Text = "New";
+            this.newFile.Click += new System.EventHandler(this.toolStripMenuItem1_Click);
+            // 
             // openToolStripMenuItem
             // 
             this.openToolStripMenuItem.Name = "openToolStripMenuItem";
             this.openToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.openToolStripMenuItem.Text = "Open...";
             this.openToolStripMenuItem.Click += new System.EventHandler(this.openToolStripMenuItem_Click);
+            // 
+            // toolStripSeparator2
+            // 
+            this.toolStripSeparator2.Name = "toolStripSeparator2";
+            this.toolStripSeparator2.Size = new System.Drawing.Size(149, 6);
             // 
             // saveToolStripMenuItem
             // 
@@ -269,32 +296,27 @@
             // clearToolStripMenuItem
             // 
             this.clearToolStripMenuItem.Name = "clearToolStripMenuItem";
-            this.clearToolStripMenuItem.Size = new System.Drawing.Size(101, 22);
+            this.clearToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.clearToolStripMenuItem.Text = "Clear";
             this.clearToolStripMenuItem.Click += new System.EventHandler(this.clearToolStripMenuItem_Click);
             // 
-            // toolStripMenuItem1
+            // vertexCountLabel
             // 
-            this.toolStripMenuItem1.Name = "toolStripMenuItem1";
-            this.toolStripMenuItem1.Size = new System.Drawing.Size(152, 22);
-            this.toolStripMenuItem1.Text = "New";
-            this.toolStripMenuItem1.Click += new System.EventHandler(this.toolStripMenuItem1_Click);
+            this.vertexCountLabel.AutoSize = true;
+            this.vertexCountLabel.Location = new System.Drawing.Point(6, 350);
+            this.vertexCountLabel.Name = "vertexCountLabel";
+            this.vertexCountLabel.Size = new System.Drawing.Size(70, 13);
+            this.vertexCountLabel.TabIndex = 9;
+            this.vertexCountLabel.Text = "Vertex count:";
             // 
-            // toolStripSeparator2
+            // vertexCount
             // 
-            this.toolStripSeparator2.Name = "toolStripSeparator2";
-            this.toolStripSeparator2.Size = new System.Drawing.Size(149, 6);
-            // 
-            // eraserCheckBox
-            // 
-            this.eraserCheckBox.AutoSize = true;
-            this.eraserCheckBox.Location = new System.Drawing.Point(6, 19);
-            this.eraserCheckBox.Name = "eraserCheckBox";
-            this.eraserCheckBox.Size = new System.Drawing.Size(56, 17);
-            this.eraserCheckBox.TabIndex = 8;
-            this.eraserCheckBox.Text = "Eraser";
-            this.eraserCheckBox.UseVisualStyleBackColor = true;
-            this.eraserCheckBox.CheckedChanged += new System.EventHandler(this.eraserCheckBox_CheckedChanged);
+            this.vertexCount.AutoSize = true;
+            this.vertexCount.Location = new System.Drawing.Point(73, 350);
+            this.vertexCount.Name = "vertexCount";
+            this.vertexCount.Size = new System.Drawing.Size(13, 13);
+            this.vertexCount.TabIndex = 10;
+            this.vertexCount.Text = "0";
             // 
             // BrechenForm
             // 
@@ -308,6 +330,7 @@
             this.Name = "BrechenForm";
             this.Text = "Brechen Level Editor";
             this.groupBox1.ResumeLayout(false);
+            this.groupBox1.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.brickGrid)).EndInit();
             this.groupBox2.ResumeLayout(false);
             this.groupBox2.PerformLayout();
@@ -345,9 +368,11 @@
         private System.Windows.Forms.ToolStripMenuItem clearToolStripMenuItem;
         private System.Windows.Forms.SaveFileDialog saveAsFileDialog;
         private System.Windows.Forms.OpenFileDialog openFileDialog;
-        private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem1;
+        private System.Windows.Forms.ToolStripMenuItem newFile;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
         private System.Windows.Forms.CheckBox eraserCheckBox;
+        private System.Windows.Forms.Label vertexCountLabel;
+        private System.Windows.Forms.Label vertexCount;
 
     }
 }
