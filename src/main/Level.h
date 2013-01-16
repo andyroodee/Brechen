@@ -5,7 +5,7 @@
 #include "../drawables/Ball.h"
 #include <tsu/drawables/scene.h>
 
-class Level 
+class Level : public RefCnt
 {
 public:
     // Where the bricks start drawing, in screen pixel coordinates.
@@ -14,11 +14,11 @@ public:
 
     Level();
 
-    void load(int levelNumber);
+    void Load(int levelNumber);
 
-    bool isCompleted() const;
+    bool IsCompleted() const;
 
-    void addToScene(RefPtr<Scene> scene);
+    void AddToScene(Scene* scene);
 
     int CheckCollision(Ball* ball);
 
@@ -28,7 +28,7 @@ public:
     }
 
 private:
-    void unload();
+    void Unload();
 
     int m_brickCount;
     int m_destroyedBrickCount;

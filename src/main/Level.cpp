@@ -20,14 +20,14 @@ Level::Level()
     m_destroyedBrickCount = 0;
 }
 
-bool Level::isCompleted() const
+bool Level::IsCompleted() const
 {
     return (m_brickCount == m_destroyedBrickCount);
 }
 
-void Level::load(int levelNumber)
+void Level::Load(int levelNumber)
 {
-    unload();
+    Unload();
 
     char levelName[256];
     sprintf(levelName, "/cd/levels/%s%d", "level", levelNumber);
@@ -65,7 +65,7 @@ void Level::load(int levelNumber)
     fclose(file);
 }
 
-void Level::unload()
+void Level::Unload()
 {
     if (m_bricks)
     {
@@ -78,8 +78,6 @@ void Level::unload()
 int Level::CheckCollision(Ball* ball)
 {
     const Vector& ballPosition = ball->getPosition();
-    const int HALF_BALL_HEIGHT = 16/2;
-    const int HALF_BALL_WIDTH = 16/2;
 
     int score = 0;
 
@@ -113,7 +111,7 @@ int Level::CheckCollision(Ball* ball)
     return score;
 }
 
-void Level::addToScene(RefPtr<Scene> scene)
+void Level::AddToScene(Scene* scene)
 {
     for (int i = 0; i < m_brickCount; ++i)
     {
