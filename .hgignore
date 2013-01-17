@@ -3,3 +3,9 @@ tools/BrechenEditor/obj/
 tools/BrechenEditor/bin/Debug/BrechenEditor.vshost.exe.manifest
 tools/BrechenEditor/BrechenEditor.suo.orig
 tools/BrechenEditor/BrechenEditor.suo
+tools/BrechenEditor/bin/Release/BrechenEditor.vshost.exe.manifest
+tools/BrechenEditor/bin/Release/BrechenEditor.vshost.exe
+tools/BrechenEditor/bin/Release/BrechenEditor.pdb
+tools/BrechenEditor/bin/Debug/BrechenEditor.vshost.exe
+tools/BrechenEditor/bin/Debug/BrechenEditor.pdb
+tools/BrechenEditor/bin/Debug/BrechenEditor.exe
