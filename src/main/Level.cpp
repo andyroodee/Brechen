@@ -1,21 +1,8 @@
 #include "Level.h"
 #include <math.h>
 
-struct BrickRecord
-{
-    unsigned char xPos;
-    unsigned char yPos;
-    unsigned char width;
-    unsigned char height;
-    unsigned char b;
-    unsigned char g;
-    unsigned char r;
-    unsigned char a;
-};
-
 Level::Level()
 {
-    m_bricks = 0;
     m_brickCount = 0;
     m_destroyedBrickCount = 0;
 }
@@ -37,15 +24,11 @@ void Level::Load(int levelNumber)
     int numberOfBrickRecords = 0;
     fread(&numberOfBrickRecords, sizeof(int), 1, file);
    
-    m_bricks = new RefPtr<Brick>[numberOfBrickRecords];
-
     BrickRecord brickRecord;
     while (m_brickCount < numberOfBrickRecords && fread(&brickRecord, sizeof(BrickRecord), 1, file))
     {        
-        RefPtr<Brick> brick = new Brick(brickRecord.width * 8, brickRecord.height * 8);     
-        brick->setType('1');
+        RefPtr<Brick> brick = new Brick(brickRecord.width * 8, brickRecord.height * 8);    
 
-        // GPU is not happy to recieve 0 / 255 for a color value!
         if (brickRecord.a < 1) brickRecord.a = 1;
         if (brickRecord.r < 1) brickRecord.r = 1;
         if (brickRecord.g < 1) brickRecord.g = 1;
@@ -59,7 +42,8 @@ void Level::Load(int levelNumber)
             BRICK_START_Y + brickRecord.yPos * 8 + brickRecord.height * 4,
             10.0f));
 
-        m_bricks[m_brickCount++] = brick;
+        m_bricks.insertHead(brick);
+        ++m_brickCount;
     }
 
     fclose(file);
@@ -67,12 +51,22 @@ void Level::Load(int levelNumber)
 
 void Level::Unload()
 {
-    if (m_bricks)
-    {
-        delete [] m_bricks;
-    }
+    m_bricks.delAll();
     m_brickCount = 0;
     m_destroyedBrickCount = 0;
+}
+
+void Level::draw(int list)
+{
+    ListNode<Drawable> *t = (ListNode<Drawable>*)m_bricks.getHead();
+	while (t) 
+    {
+		if (!(*t)->isFinished())
+		{
+            (*t)->draw(list);
+        }
+		t = t->getNext();
+	}
 }
 
 int Level::CheckCollision(Ball* ball)
@@ -80,44 +74,32 @@ int Level::CheckCollision(Ball* ball)
     const Vector& ballPosition = ball->getPosition();
 
     int score = 0;
-
-    for (int i = 0; i < m_brickCount; ++i)
+    
+    ListNode<Brick>* brickNode = m_bricks.getHead();
+	while (brickNode) 
     {
-        if (!m_bricks[i])
+        Brick* brick = brickNode->getData();
+
+        const Vector& brickPosition = brick->getPosition();
+
+        // TODO: Take ball size into account?!
+        if (fabs(ballPosition.y - brickPosition.y) <= brick->getHeight() && 
+            fabs(ballPosition.x - brickPosition.x) <= brick->getWidth())
         {
+            Vector hyp = brickPosition - ballPosition;
+            hyp.normalizeSelf();
+            hyp *= ball->getSpeed();
+            //ball->setVelocity(-hyp); 
+
+            brickNode = brickNode->getNext();
+            m_bricks.del(brick);   
+            score += 20;
+            ++m_destroyedBrickCount;         
             continue;
         }
-        RefPtr<Brick> brick = m_bricks[i];
-        if (brick->getType() != '0')
-        {
-            const Vector& brickPosition = brick->getPosition();
 
-            if (fabs(ballPosition.y - brickPosition.y) <= brick->getHeight() && 
-                fabs(ballPosition.x - brickPosition.x) <= brick->getWidth())
-            {
-                Vector hyp = brickPosition - ballPosition;
-                hyp.normalizeSelf();
-                hyp *= ball->getSpeed();
-                //ball->setVelocity(-hyp); 
-
-                brick->setType('0');
-                brick->getParent()->subRemove(brick);                    
-                score += 20;
-                ++m_destroyedBrickCount;                
-            }
-        }
-    }
+		brickNode = brickNode->getNext();
+	}
 
     return score;
-}
-
-void Level::AddToScene(Scene* scene)
-{
-    for (int i = 0; i < m_brickCount; ++i)
-    {
-        if (m_bricks[i])            
-        {
-            scene->subAdd(m_bricks[i]);
-        }
-    }
 }

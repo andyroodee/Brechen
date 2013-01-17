@@ -13,11 +13,6 @@ public:
     void Draw();
     void AddDrawable(Drawable* drawable);
 
-    Scene* GetScene() const
-    {
-        return m_scene;
-    }
-
 private:
     RefPtr<Scene> m_scene;
 };

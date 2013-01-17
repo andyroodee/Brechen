@@ -27,6 +27,7 @@ int main(int argc, char** argv)
     Game game;
     sceneManager.AddDrawable(game.GetPaddle());
     sceneManager.AddDrawable(game.GetBall());
+    sceneManager.AddDrawable(game.GetLevel());
     
     RefPtr<Font> font = new Font("/rd/typewriter.txf");
     font->setColor(0.1f, 0.4f, 0.9f);
@@ -36,9 +37,7 @@ int main(int argc, char** argv)
     mainUI->UpdateLivesLabel(game.GetLives());
     mainUI->UpdateLevelLabel(game.GetLevelNumber());
     sceneManager.AddDrawable(mainUI);   
-    
-    game.GetLevel()->AddToScene(sceneManager.GetScene());
-    
+        
     bool done = false;
     while (!done) 
     {
@@ -54,7 +53,7 @@ int main(int argc, char** argv)
         if (game.GetLevel()->IsCompleted())
         {            
             game.LoadLevel(game.GetLevelNumber() + 1);
-            game.GetLevel()->AddToScene(sceneManager.GetScene());     
+            //sceneManager.AddDrawable(game.GetLevel());   
             mainUI->UpdateLevelLabel(game.GetLevelNumber());
         }
 

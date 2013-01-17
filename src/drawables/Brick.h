@@ -6,6 +6,8 @@
 class Brick : public Drawable
 {
 public:
+    static const int BORDER_SIZE = 1;
+
     Brick(int width, int height);
 
     virtual ~Brick() {}
@@ -15,13 +17,6 @@ public:
     virtual void nextFrame()
     {
         Drawable::nextFrame();
-    }
-
-    void setType(unsigned char type);
-
-    unsigned char getType() const
-    {
-        return m_type;
     }
 
     int getWidth() const
@@ -45,7 +40,6 @@ public:
     }
 
 private:
-    unsigned char m_type;
     int m_width;
     int m_height;
 };

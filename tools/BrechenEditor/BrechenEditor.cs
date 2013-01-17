@@ -198,8 +198,8 @@ namespace BrechenEditor
             // Draw the bricks
             foreach (Brick brick in Level.Bricks)
             {
-                g.FillRectangle(new SolidBrush(brick.Color), brick.Location.X, brick.Location.Y,
-                    brick.Width, brick.Height);
+                g.FillRectangle(new SolidBrush(brick.Color), brick.Location.X + 1, brick.Location.Y + 1,
+                    brick.Width - 1, brick.Height - 1);
             }
             vertexCount.Text = "" + Level.Bricks.Count * 4;
             brickGrid.Invalidate();
@@ -226,12 +226,7 @@ namespace BrechenEditor
 
             return true;
         }
-
-        private void exitToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            Application.Exit();
-        }
-
+        
         private void button1_Click(object sender, EventArgs e)
         {
             DialogResult result = brickColourDialog.ShowDialog();
@@ -247,8 +242,8 @@ namespace BrechenEditor
         {
             if (brickWidthComboBox.SelectedItem != null && brickHeightComboBox.SelectedItem != null)
             {
-                e.Graphics.FillRectangle(new SolidBrush(previewBrick.Color), 0, 0,
-                    previewBrick.Width, previewBrick.Height);
+                e.Graphics.FillRectangle(new SolidBrush(previewBrick.Color), 1, 1,
+                    previewBrick.Width - 1, previewBrick.Height - 1);
             }
         }
 
