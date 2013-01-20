@@ -4,6 +4,7 @@ Brick::Brick(int width, int height)
 {
     m_width = width;
     m_height = height;
+    m_value = 20;
 }
 
 void Brick::draw(int list)
@@ -23,18 +24,24 @@ void Brick::draw(int list)
     pvr_poly_compile(&hdr, &cxt);
     pvr_prim(&hdr, sizeof(hdr));    
     
+    Color light = getColor() * 0.8f;
+    light.a = 1.0f;
+
+    Color dark = getColor() * 1.2f;
+    dark.a = 1.0f;
+    
     vert.flags = PVR_CMD_VERTEX;
     vert.x = pos.x - m_width/2 + BORDER_SIZE;
     vert.y = pos.y + m_height/2 - BORDER_SIZE;
     vert.z = 10.0f;
     vert.u = 0;
     vert.v = 0;
-    vert.argb = getColor() * 0.8f;
+    vert.argb = light;
     vert.oargb = 0;
     pvr_prim(&vert, sizeof(vert));
 
-    vert.y = pos.y - m_height/2  + BORDER_SIZE;    
-    vert.argb = getColor() * 1.2f;
+    vert.y = pos.y - m_height/2 + BORDER_SIZE;    
+    vert.argb = dark;
     pvr_prim(&vert, sizeof(vert));
  
     vert.x = pos.x + m_width/2 - BORDER_SIZE;

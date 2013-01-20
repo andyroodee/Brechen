@@ -1,6 +1,7 @@
 #ifndef __BRECHEN_GAME_H
 #define __BRECHEN_GAME_H
 
+#include <tsu/sound.h>
 #include "../drawables/Paddle.h"
 #include "../drawables/Ball.h"
 #include "Level.h"
@@ -10,44 +11,46 @@ class Game
 public:
     Game();
 
-    void CheckCollisions();
-    void UpdateControls();
+    void checkCollisions();
+    void updateControls();
 
-    void LoadLevel(int levelNumber);
+    void loadLevel(int levelNumber);
 
-    int GetScore() const
+    void onLostBall();
+
+    int getScore() const
     {
         return m_score;
     }
 
-    int GetLevelNumber() const
+    int getLevelNumber() const
     {
         return m_levelNumber;
     }
 
-    int GetLives() const
+    int getLives() const
     {
         return m_lives;
     }
 
-    Paddle* GetPaddle() const
+    Paddle* getPaddle() const
     {
         return m_paddle;
     }
 
-    Ball* GetBall() const
+    Ball* getBall() const
     {
         return m_ball;
     }
 
-    Level* GetLevel() const
+    Level* getLevel() const
     {
         return m_currentLevel;
     }
 
 private:
-    void CreatePaddle();
-    void CreateBall();
+    void createPaddle();
+    void createBall();
 
     int m_score;
     int m_levelNumber;
@@ -55,6 +58,7 @@ private:
     RefPtr<Level> m_currentLevel;
     RefPtr<Paddle> m_paddle;
     RefPtr<Ball> m_ball;
+    RefPtr<Sound> m_wallBounce;
 };
 
 #endif

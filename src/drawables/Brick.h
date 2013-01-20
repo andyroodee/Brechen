@@ -39,9 +39,20 @@ public:
         m_height = height;
     }
 
+    int getValue() const
+    {
+        return m_value;
+    }
+
+    void setValue(int value)
+    {
+        m_value = value;
+    }
+
 private:
     int m_width;
     int m_height;
+    int m_value;
 };
 
 #endif

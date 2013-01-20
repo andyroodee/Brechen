@@ -19,17 +19,17 @@ UI::~UI()
 {
 }
 
-void UI::UpdateScoreLabel(int score)
+void UI::updateScoreLabel(int score)
 {    
     m_scoreLabel->setText("%s%d", "Score: ", score);
 }
 
-void UI::UpdateLivesLabel(int lives)
+void UI::updateLivesLabel(int lives)
 {
     m_livesLabel->setText("%s%d", "Lives: ", lives);
 }
 
-void UI::UpdateLevelLabel(int level)
+void UI::updateLevelLabel(int level)
 {
     m_levelLabel->setText("%s%d", "Level: ", level);
 }

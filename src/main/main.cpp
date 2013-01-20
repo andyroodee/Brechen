@@ -1,15 +1,11 @@
-#include <math.h>
 #include <kos.h>
-#include <oggvorbis/sndoggvorbis.h>
-#include <tsu/font.h>
 #include <tsu/texture.h>
-#include <tsu/drawables/scene.h>
-#include <plx/sprite.h>
-#include <plx/context.h>
+#include <tsu/drawables/banner.h>
 #include "../drawables/Paddle.h"
 #include "../drawables/Brick.h"
 #include "../drawables/Ball.h"
 #include "../drawables/UI.h"
+#include "../drawables/Border.h"
 #include "Level.h"
 #include "SceneManager.h"
 #include "Game.h"
@@ -22,45 +18,64 @@ KOS_INIT_FLAGS(INIT_DEFAULT | INIT_NO_DCLOAD | INIT_QUIET);
 int main(int argc, char** argv)
 {    
     SceneManager sceneManager;
-    sceneManager.Setup();
+    sceneManager.setup();
     
     Game game;
-    sceneManager.AddDrawable(game.GetPaddle());
-    sceneManager.AddDrawable(game.GetBall());
-    sceneManager.AddDrawable(game.GetLevel());
+    sceneManager.addDrawable(game.getPaddle());
+    sceneManager.addDrawable(game.getBall());
+    sceneManager.addDrawable(game.getLevel());
     
     RefPtr<Font> font = new Font("/rd/typewriter.txf");
     font->setColor(0.1f, 0.4f, 0.9f);
         
     RefPtr<UI> mainUI = new UI(font, 16);
-    mainUI->UpdateScoreLabel(game.GetScore());
-    mainUI->UpdateLivesLabel(game.GetLives());
-    mainUI->UpdateLevelLabel(game.GetLevelNumber());
-    sceneManager.AddDrawable(mainUI);   
-        
+    mainUI->updateScoreLabel(game.getScore());
+    mainUI->updateLivesLabel(game.getLives());
+    mainUI->updateLevelLabel(game.getLevelNumber());
+    sceneManager.addDrawable(mainUI);   
+
+    RefPtr<Border> border = new Border();
+    sceneManager.addDrawable(border);
+    
+    RefPtr<Texture> bgTexture = new Texture("/rd/bg.png", true);
+    bgTexture->setFilter(Texture::FilterNone);
+    RefPtr<Banner> bg = new Banner(PVR_LIST_TR_POLY, bgTexture);
+    bg->setTranslate(Vector(
+        Border::LEFT_BORDER + bgTexture->getW() / 2, 
+        Border::TOP_BORDER + bgTexture->getH() / 2, 9));
+
+    sceneManager.addDrawable(bg);
+            
     bool done = false;
     while (!done) 
     {
-        sceneManager.Draw();
+        sceneManager.draw();
 
-        int oldScore = game.GetScore();
-        game.CheckCollisions();
-        if (oldScore != game.GetScore())
+        int oldScore = game.getScore();
+        int oldLives = game.getLives();
+
+        game.checkCollisions();
+        
+        if (oldScore != game.getScore())
         {
-            mainUI->UpdateScoreLabel(game.GetScore());
+            mainUI->updateScoreLabel(game.getScore());
         }
 
-        if (game.GetLevel()->IsCompleted())
+        if (oldLives != game.getLives())
+        {
+            mainUI->updateLivesLabel(game.getLives());
+        }
+
+        if (game.getLevel()->isCompleted())
         {            
-            game.LoadLevel(game.GetLevelNumber() + 1);
-            //sceneManager.AddDrawable(game.GetLevel());   
-            mainUI->UpdateLevelLabel(game.GetLevelNumber());
+            game.loadLevel(game.getLevelNumber() + 1);  
+            mainUI->updateLevelLabel(game.getLevelNumber());
         }
 
-        game.UpdateControls();
+        game.updateControls();
     }
     
-    sceneManager.Teardown();
+    sceneManager.teardown();
 
     return 0;
 }

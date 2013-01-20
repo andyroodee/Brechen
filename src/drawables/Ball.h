@@ -3,9 +3,11 @@
 
 #include <tsu/drawable.h>
 #include <tsu/texture.h>
-#include <tsu/vector3.h>
+#include <tsu/vector.h>
 #include <plx/list.h>
 #include <plx/sprite.h>
+
+class Brick;
 
 class Ball : public Drawable
 {
@@ -16,15 +18,10 @@ public:
 
     virtual void draw(int list);
 
-    virtual void nextFrame()
-    {
-        Drawable::nextFrame();
-    }
-
     void reset()
     {
         m_isLaunched = false;
-        setSpeed(6.0f);
+        setSpeed(4.0f);
     }
 
     bool getIsLaunched() const
@@ -34,7 +31,10 @@ public:
     
     void launch();
 
-    const Vector getVelocity() const
+    float getWidth() const;
+    float getHeight() const;
+
+    const Vector& getVelocity() const
     {
         return m_velocity;
     }
@@ -55,6 +55,8 @@ public:
         m_velocity.normalizeSelf();
         m_velocity *= m_speed;
     }
+
+    bool intersectsWith(Brick* brick) const;
 
 private:
     bool m_isLaunched;

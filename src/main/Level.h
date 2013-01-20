@@ -4,6 +4,7 @@
 #include "../drawables/Brick.h"
 #include "../drawables/Ball.h"
 #include <tsu/drawables/scene.h>
+#include <tsu/sound.h>
 
 class Level : public Drawable
 {
@@ -22,25 +23,26 @@ public:
     };
 
     // Where the bricks start drawing, in screen pixel coordinates.
-    static const int BRICK_START_X = 32;
+    static const int BRICK_START_X = 40;
     static const int BRICK_START_Y = 64;
 
     Level();
 
-    void Load(int levelNumber);
+    void load(int levelNumber);
 
-    bool IsCompleted() const;
+    bool isCompleted() const;
 
-    int CheckCollision(Ball* ball);
+    int checkCollision(Ball* ball);
     
     virtual void draw(int list);
 
 private:
-    void Unload();
+    void unload();
 
     List<Brick> m_bricks;
     int m_brickCount;
     int m_destroyedBrickCount;
+    RefPtr<Sound> m_brickBounce;
 };
 
 #endif

@@ -12,8 +12,8 @@ namespace BrechenEditor
 {
     public partial class BrechenForm : Form
     {
-        private const int CANVAS_WIDTH = 576;
-        private const int CANVAS_HEIGHT = 320;
+        private const int CANVAS_WIDTH = 560;
+        private const int CANVAS_HEIGHT = 304;
         private Brick previewBrick = new Brick(8, 8, Point.Empty, Color.Black);
         private Image m_originalImage;
         private Pen m_gridPen = new Pen(Color.FromArgb(64, Color.Black));

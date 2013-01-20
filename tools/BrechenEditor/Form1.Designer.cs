@@ -29,6 +29,8 @@
         private void InitializeComponent()
         {
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.vertexCount = new System.Windows.Forms.Label();
+            this.vertexCountLabel = new System.Windows.Forms.Label();
             this.brickGrid = new System.Windows.Forms.PictureBox();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
             this.eraserCheckBox = new System.Windows.Forms.CheckBox();
@@ -55,8 +57,6 @@
             this.brickColourDialog = new System.Windows.Forms.ColorDialog();
             this.saveAsFileDialog = new System.Windows.Forms.SaveFileDialog();
             this.openFileDialog = new System.Windows.Forms.OpenFileDialog();
-            this.vertexCountLabel = new System.Windows.Forms.Label();
-            this.vertexCount = new System.Windows.Forms.Label();
             this.groupBox1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.brickGrid)).BeginInit();
             this.groupBox2.SuspendLayout();
@@ -76,12 +76,30 @@
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Brick Canvas";
             // 
+            // vertexCount
+            // 
+            this.vertexCount.AutoSize = true;
+            this.vertexCount.Location = new System.Drawing.Point(73, 350);
+            this.vertexCount.Name = "vertexCount";
+            this.vertexCount.Size = new System.Drawing.Size(13, 13);
+            this.vertexCount.TabIndex = 10;
+            this.vertexCount.Text = "0";
+            // 
+            // vertexCountLabel
+            // 
+            this.vertexCountLabel.AutoSize = true;
+            this.vertexCountLabel.Location = new System.Drawing.Point(6, 350);
+            this.vertexCountLabel.Name = "vertexCountLabel";
+            this.vertexCountLabel.Size = new System.Drawing.Size(70, 13);
+            this.vertexCountLabel.TabIndex = 9;
+            this.vertexCountLabel.Text = "Vertex count:";
+            // 
             // brickGrid
             // 
             this.brickGrid.Image = global::BrechenEditor.Properties.Resources.canvas;
             this.brickGrid.Location = new System.Drawing.Point(6, 19);
             this.brickGrid.Name = "brickGrid";
-            this.brickGrid.Size = new System.Drawing.Size(576, 320);
+            this.brickGrid.Size = new System.Drawing.Size(560, 304);
             this.brickGrid.TabIndex = 0;
             this.brickGrid.TabStop = false;
             // 
@@ -243,45 +261,45 @@
             // newFile
             // 
             this.newFile.Name = "newFile";
-            this.newFile.Size = new System.Drawing.Size(152, 22);
+            this.newFile.Size = new System.Drawing.Size(123, 22);
             this.newFile.Text = "New";
             this.newFile.Click += new System.EventHandler(this.toolStripMenuItem1_Click);
             // 
             // openToolStripMenuItem
             // 
             this.openToolStripMenuItem.Name = "openToolStripMenuItem";
-            this.openToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.openToolStripMenuItem.Size = new System.Drawing.Size(123, 22);
             this.openToolStripMenuItem.Text = "Open...";
             this.openToolStripMenuItem.Click += new System.EventHandler(this.openToolStripMenuItem_Click);
             // 
             // toolStripSeparator2
             // 
             this.toolStripSeparator2.Name = "toolStripSeparator2";
-            this.toolStripSeparator2.Size = new System.Drawing.Size(149, 6);
+            this.toolStripSeparator2.Size = new System.Drawing.Size(120, 6);
             // 
             // saveToolStripMenuItem
             // 
             this.saveToolStripMenuItem.Name = "saveToolStripMenuItem";
-            this.saveToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.saveToolStripMenuItem.Size = new System.Drawing.Size(123, 22);
             this.saveToolStripMenuItem.Text = "Save";
             this.saveToolStripMenuItem.Click += new System.EventHandler(this.saveToolStripMenuItem_Click);
             // 
             // saveAsToolStripMenuItem
             // 
             this.saveAsToolStripMenuItem.Name = "saveAsToolStripMenuItem";
-            this.saveAsToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.saveAsToolStripMenuItem.Size = new System.Drawing.Size(123, 22);
             this.saveAsToolStripMenuItem.Text = "Save As...";
             this.saveAsToolStripMenuItem.Click += new System.EventHandler(this.saveAsToolStripMenuItem_Click);
             // 
             // toolStripSeparator1
             // 
             this.toolStripSeparator1.Name = "toolStripSeparator1";
-            this.toolStripSeparator1.Size = new System.Drawing.Size(149, 6);
+            this.toolStripSeparator1.Size = new System.Drawing.Size(120, 6);
             // 
             // exitToolStripMenuItem1
             // 
             this.exitToolStripMenuItem1.Name = "exitToolStripMenuItem1";
-            this.exitToolStripMenuItem1.Size = new System.Drawing.Size(152, 22);
+            this.exitToolStripMenuItem1.Size = new System.Drawing.Size(123, 22);
             this.exitToolStripMenuItem1.Text = "Exit";
             this.exitToolStripMenuItem1.Click += new System.EventHandler(this.exitToolStripMenuItem1_Click);
             // 
@@ -296,27 +314,9 @@
             // clearToolStripMenuItem
             // 
             this.clearToolStripMenuItem.Name = "clearToolStripMenuItem";
-            this.clearToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.clearToolStripMenuItem.Size = new System.Drawing.Size(101, 22);
             this.clearToolStripMenuItem.Text = "Clear";
             this.clearToolStripMenuItem.Click += new System.EventHandler(this.clearToolStripMenuItem_Click);
-            // 
-            // vertexCountLabel
-            // 
-            this.vertexCountLabel.AutoSize = true;
-            this.vertexCountLabel.Location = new System.Drawing.Point(6, 350);
-            this.vertexCountLabel.Name = "vertexCountLabel";
-            this.vertexCountLabel.Size = new System.Drawing.Size(70, 13);
-            this.vertexCountLabel.TabIndex = 9;
-            this.vertexCountLabel.Text = "Vertex count:";
-            // 
-            // vertexCount
-            // 
-            this.vertexCount.AutoSize = true;
-            this.vertexCount.Location = new System.Drawing.Point(73, 350);
-            this.vertexCount.Name = "vertexCount";
-            this.vertexCount.Size = new System.Drawing.Size(13, 13);
-            this.vertexCount.TabIndex = 10;
-            this.vertexCount.Text = "0";
             // 
             // BrechenForm
             // 

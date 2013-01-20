@@ -2,26 +2,36 @@
 #define __BRECHEN_PADDLE_H
 
 #include <tsu/drawable.h>
-#include <tsu/vector3.h>
+#include <tsu/vector.h>
+#include <tsu/texture.h>
 #include <tsu/color.h>
 #include <plx/list.h>
 #include <plx/sprite.h>
 
 class Paddle : public Drawable
 {
-public:
-    Paddle();
+public:    
+    Paddle(Texture* texture);
 
     virtual ~Paddle() {}
 
     virtual void draw(int list);
 
-    virtual void nextFrame()
+    void setSize(float width, float height)
     {
-        Drawable::nextFrame();
+        m_width = width;
+        m_height = height;
     }
 
-    void setSize(float w, float h);
+    float getWidth() const
+    {
+        return m_width;
+    }
+
+    float getHeight() const
+    {
+        return m_height;
+    }
 
     float getSpeed() const
     {
@@ -37,6 +47,9 @@ private:
     int m_width;
     int m_height;
     float m_speed;
+    RefPtr<Texture>	m_texture;
+	float m_u1, m_v1, m_u2, m_v2;
+	float m_u3, m_v3, m_u4, m_v4;
 };
 
 #endif

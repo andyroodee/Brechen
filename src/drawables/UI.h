@@ -10,9 +10,9 @@ public:
     UI(Font* font, int fontSize);
     virtual ~UI();
 
-    void UpdateScoreLabel(int score);
-    void UpdateLivesLabel(int lives);
-    void UpdateLevelLabel(int level);
+    void updateScoreLabel(int score);
+    void updateLivesLabel(int lives);
+    void updateLevelLabel(int level);
 
 private:
     RefPtr<UILabel> m_scoreLabel;

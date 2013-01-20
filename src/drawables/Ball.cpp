@@ -1,11 +1,13 @@
+#include <math.h>
 #include "Ball.h"
+#include "Brick.h"
 
 Ball::Ball(Texture* texture)
 {
     m_isLaunched = false;
     m_texture = texture;
-    m_radius = 2.0f;
-    m_speed = 6.0f;
+    m_radius = 8.0f;
+    m_speed = 4.0f;
     m_velocity = Vector(0.0f, 0.0f, 0.0f);
     m_u1 = m_v2 = 0.0f;
 	m_u2 = m_v4 = 0.0f;
@@ -23,10 +25,70 @@ void Ball::launch()
     }
 }
 
+float Ball::getWidth() const
+{
+    float width = m_texture->getW();
+
+	const Vector& sv = getScale();
+	width *= sv.x;
+
+    return width;
+}
+
+float Ball::getHeight() const
+{
+    float height = m_texture->getH();
+
+	const Vector& sv = getScale();
+	height *= sv.y;
+
+    return height;
+}
+
+bool Ball::intersectsWith(Brick* brick) const
+{
+    const Vector& ballCenter = getPosition();
+    const Vector& brickCenter = brick->getPosition();
+
+    float xDistance = fabs(ballCenter.x - brickCenter.x);
+    float yDistance = fabs(ballCenter.y - brickCenter.y);
+
+    float halfBrickWidth = brick->getWidth() / 2;
+    float halfBrickHeight = brick->getHeight() / 2;
+
+    if (xDistance > halfBrickWidth + m_radius)
+    {
+        return false;
+    }
+
+    if (yDistance > halfBrickHeight + m_radius)
+    {
+        return false;
+    }
+
+    if (xDistance <= halfBrickWidth)
+    {
+        return true;
+    }
+
+    if (yDistance <= halfBrickHeight)
+    {
+        return true;
+    }
+
+    float cornerDistanceSquared = 
+        ((xDistance - halfBrickWidth) * (xDistance - halfBrickWidth)) +
+        ((yDistance - halfBrickHeight) * (yDistance - halfBrickHeight));
+
+    return (cornerDistanceSquared <= (m_radius * m_radius));
+}
+
 void Ball::draw(int list)
 {
     if (list != PVR_LIST_TR_POLY || !m_texture)
-		return;
+	{
+        return;
+    }
 
 	m_texture->sendHdr(list);
     	
@@ -42,13 +104,7 @@ void Ball::draw(int list)
 	const Vector& tv = getPosition();
     
 	plx_vertex_t vert;
-	if (list == PLX_LIST_TR_POLY) {
-		vert.argb = getColor();
-	} else {
-		Color t = getColor(); 
-        t.a = 1.0f;
-		vert.argb = t;
-	}
+	vert.argb = getColor();
 	vert.oargb = 0;
 
 	vert.flags = PLX_VERT;
@@ -75,6 +131,4 @@ void Ball::draw(int list)
 	vert.u = m_u4;
 	vert.v = m_v4;
 	plx_prim(&vert, sizeof(vert));
-
-	Drawable::draw(list);
 }

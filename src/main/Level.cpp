@@ -5,16 +5,17 @@ Level::Level()
 {
     m_brickCount = 0;
     m_destroyedBrickCount = 0;
+    m_brickBounce = new Sound("/rd/sounds/brickbounce.wav");
 }
 
-bool Level::IsCompleted() const
+bool Level::isCompleted() const
 {
     return (m_brickCount == m_destroyedBrickCount);
 }
 
-void Level::Load(int levelNumber)
+void Level::load(int levelNumber)
 {
-    Unload();
+    unload();
 
     char levelName[256];
     sprintf(levelName, "/cd/levels/%s%d", "level", levelNumber);
@@ -49,7 +50,7 @@ void Level::Load(int levelNumber)
     fclose(file);
 }
 
-void Level::Unload()
+void Level::unload()
 {
     m_bricks.delAll();
     m_brickCount = 0;
@@ -69,37 +70,69 @@ void Level::draw(int list)
 	}
 }
 
-int Level::CheckCollision(Ball* ball)
+int Level::checkCollision(Ball* ball)
 {
     const Vector& ballPosition = ball->getPosition();
-
-    int score = 0;
     
+    int score = 0;
+
     ListNode<Brick>* brickNode = m_bricks.getHead();
-	while (brickNode) 
+    while (brickNode)
     {
         Brick* brick = brickNode->getData();
 
-        const Vector& brickPosition = brick->getPosition();
-
-        // TODO: Take ball size into account?!
-        if (fabs(ballPosition.y - brickPosition.y) <= brick->getHeight() && 
-            fabs(ballPosition.x - brickPosition.x) <= brick->getWidth())
+        if (ball->intersectsWith(brick))
         {
-            Vector hyp = brickPosition - ballPosition;
-            hyp.normalizeSelf();
-            hyp *= ball->getSpeed();
-            //ball->setVelocity(-hyp); 
+            m_brickBounce->play();
 
+            const Vector& brickPosition = brick->getPosition();
+            const int halfBrickHeight = brick->getHeight() / 2;
+            const int halfBrickWidth = brick->getWidth() / 2;
+            
+            const float brickTop = brickPosition.y - halfBrickHeight;
+            const float brickBottom = brickPosition.y + halfBrickHeight;
+            const float brickLeft = brickPosition.x - halfBrickWidth;
+            const float brickRight = brickPosition.x + halfBrickWidth;
+                
+            // What side of the brick did the ball hit?
+            const bool onLeftSide = ballPosition.x < brickLeft;
+            const bool onRightSide = ballPosition.x > brickRight;
+            const bool onTopSide = ballPosition.y < brickTop;
+            const bool onBottomSide = ballPosition.y > brickBottom;
+
+            Vector newBallVelocity = ball->getVelocity();
+
+            if (onLeftSide || onRightSide)
+            {
+                if (onTopSide || onBottomSide)
+                {
+                    // Corner.
+                    newBallVelocity = -newBallVelocity;
+                }
+                else
+                {
+                    // One of the sides.
+                    newBallVelocity.x = -newBallVelocity.x;
+                }
+            }
+            else
+            {
+                // Top or bottom.
+                newBallVelocity.y = -newBallVelocity.y;
+            }
+
+            ball->setVelocity(newBallVelocity); 
+                 
+            score += brick->getValue();
             brickNode = brickNode->getNext();
-            m_bricks.del(brick);   
-            score += 20;
-            ++m_destroyedBrickCount;         
-            continue;
+            m_bricks.del(brick);  
+            ++m_destroyedBrickCount;      
         }
-
-		brickNode = brickNode->getNext();
-	}
+        else
+        {
+            brickNode = brickNode->getNext();
+        }
+    }
 
     return score;
 }

@@ -2,7 +2,7 @@ TARGET = brechen.elf
 
 SRCS_MAIN	= main/main.cpp main/Level.cpp main/SceneManager.cpp main/Game.cpp
 
-SRCS_DRAWABLES	= drawables/Paddle.cpp drawables/Brick.cpp drawables/Ball.cpp drawables/UILabel.cpp drawables/UI.cpp
+SRCS_DRAWABLES	= drawables/Paddle.cpp drawables/Brick.cpp drawables/Ball.cpp drawables/UILabel.cpp drawables/UI.cpp drawables/Border.cpp
 			
 SRCS = $(SRCS_MAIN) $(SRCS_DRAWABLES) 
 

@@ -1,13 +1,15 @@
 #include "SceneManager.h"
+#include <kos.h>
+#include <oggvorbis/sndoggvorbis.h>
 
 SceneManager::SceneManager()
 {
 }
 
-void SceneManager::Setup()
+void SceneManager::setup()
 {
-    //snd_stream_init();
-    //sndoggvorbis_init();
+    snd_stream_init();
+    sndoggvorbis_init();
 
     pvr_init_defaults(); 
 
@@ -16,13 +18,13 @@ void SceneManager::Setup()
     m_scene = new Scene();
 }
 
-void SceneManager::Teardown()
+void SceneManager::teardown()
 {
-    //sndoggvorbis_shutdown();
-    //spu_disable();
+    sndoggvorbis_shutdown();
+    spu_disable();
 }
 
-void SceneManager::Draw()
+void SceneManager::draw()
 {
     pvr_wait_ready();
     pvr_scene_begin();        
@@ -40,7 +42,7 @@ void SceneManager::Draw()
     m_scene->nextFrame();
 }
 
-void SceneManager::AddDrawable(Drawable* drawable)
+void SceneManager::addDrawable(Drawable* drawable)
 {
     m_scene->subAdd(drawable);
 }

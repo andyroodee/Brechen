@@ -8,10 +8,10 @@ class SceneManager
 public:
     SceneManager();
 
-    void Setup();
-    void Teardown();
-    void Draw();
-    void AddDrawable(Drawable* drawable);
+    void setup();
+    void teardown();
+    void draw();
+    void addDrawable(Drawable* drawable);
 
 private:
     RefPtr<Scene> m_scene;

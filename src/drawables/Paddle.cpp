@@ -1,50 +1,59 @@
 #include "Paddle.h"
 
-Paddle::Paddle()
+Paddle::Paddle(Texture* texture)
 {
-}
-
-void Paddle::setSize(float w, float h) 
-{
-	m_width = w;
-	m_height = h;
+    m_texture = texture;
+    m_u1 = m_v2 = 0.0f;
+	m_u2 = m_v4 = 0.0f;
+	m_u3 = m_v1 = 1.0f;
+	m_u4 = m_v3 = 1.0f;
+	m_width = m_height = -1.0f;
 }
 
 void Paddle::draw(int list)
 {
-    if (list != PVR_LIST_TR_POLY)
-    {
-		return;
+    if (list != PVR_LIST_TR_POLY || !m_texture)
+	{
+        return;
     }
 
-    const Vector& pos = getPosition();
+	m_texture->sendHdr(list);
+    	
+	float w = m_texture->getW();
+	float h = m_texture->getH();
 
-    pvr_poly_hdr_t hdr;
-    pvr_poly_cxt_t cxt;
-    pvr_vertex_t vert;
+	const Vector& sv = getScale();
+	w *= sv.x;
+	h *= sv.y;
+    
+	const Vector& tv = getPosition();
+    
+	plx_vertex_t vert;
+	vert.argb = getColor();
+	vert.oargb = 0;
 
-    pvr_poly_cxt_col(&cxt, PVR_LIST_TR_POLY);
-    pvr_poly_compile(&hdr, &cxt);
-    pvr_prim(&hdr, sizeof(hdr));
+	vert.flags = PLX_VERT;
+	vert.x = tv.x-w/2;
+	vert.y = tv.y+h/2;
+	vert.z = tv.z;
+	vert.u = m_u1;
+	vert.v = m_v1;
+	plx_prim(&vert, sizeof(vert));
 
-    vert.flags = PVR_CMD_VERTEX;
-    vert.x = pos.x - m_width/2;
-    vert.y = pos.y + m_height/2;
-    vert.z = 10.0f;
-    vert.u = 0;
-    vert.v = 0;
-    vert.argb = getColor();
-    vert.oargb = 0;
-    pvr_prim(&vert, sizeof(vert));
+	vert.y = tv.y-h/2;
+	vert.u = m_u2;
+	vert.v = m_v2;
+	plx_prim(&vert, sizeof(vert));
 
-    vert.y = pos.y - m_height/2;
-    pvr_prim(&vert, sizeof(vert));
- 
-    vert.x = pos.x + m_width/2;
-    vert.y = pos.y + m_height/2;
-    pvr_prim(&vert, sizeof(vert));
+	vert.x = tv.x+w/2;
+	vert.y = tv.y+h/2;
+	vert.u = m_u3;
+	vert.v = m_v3;
+	plx_prim(&vert, sizeof(vert));
 
-    vert.flags = PVR_CMD_VERTEX_EOL;
-    vert.y = pos.y - m_height/2;
-    pvr_prim(&vert, sizeof(vert));
+	vert.flags = PLX_VERT_EOS;
+	vert.y = tv.y-h/2;
+	vert.u = m_u4;
+	vert.v = m_v4;
+	plx_prim(&vert, sizeof(vert));
 }
