@@ -10,6 +10,8 @@
 Game::Game()
 {
     m_score = 0;
+    m_extraLifeScoreMultiplier = 1;
+    m_extraLifeScoreIncrement = 1000;
     m_levelNumber = 1;
     m_lives = 3;
     m_difficulty = Game::Easy;
@@ -46,7 +48,7 @@ void Game::loadLevel(int level)
 
 void Game::onLostBall()
 {
-    --m_lives;
+    m_lives--;
     if (m_lives < 0)
     {
         // TODO: Game Over!
@@ -66,14 +68,17 @@ void Game::setDifficulty(Difficulty difficulty)
     case Easy:
         m_paddle->setSpeed(6.0f);
         m_ball->setSpeed(4.0f);
+        m_extraLifeScoreIncrement = 1000;
         break;
     case Medium:
         m_paddle->setSpeed(5.0f);
         m_ball->setSpeed(5.0f);
+        m_extraLifeScoreIncrement = 2000;
         break;
     case Hard:
         m_paddle->setSpeed(4.0f);
         m_ball->setSpeed(6.0f);
+        m_extraLifeScoreIncrement = 4000;
         break;
     default:
         break;
@@ -156,6 +161,13 @@ void Game::checkCollisions()
 
     // Check the bricks.
     m_score += m_currentLevel->checkCollision(m_ball);
+
+    if (m_score >= m_extraLifeScoreMultiplier * m_extraLifeScoreIncrement)
+    {
+        // TODO: Play some 1up sound effect
+        m_lives++;
+        m_extraLifeScoreMultiplier++;
+    }
 }
 
 void Game::updateControls()

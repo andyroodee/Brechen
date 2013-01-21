@@ -68,6 +68,8 @@ private:
     void createBall();
 
     int m_score;
+    int m_extraLifeScoreMultiplier;
+    int m_extraLifeScoreIncrement;
     int m_levelNumber;
     int m_lives;
     RefPtr<Level> m_currentLevel;
