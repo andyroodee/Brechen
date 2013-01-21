@@ -7,7 +7,7 @@ Ball::Ball(Texture* texture)
     m_isLaunched = false;
     m_texture = texture;
     m_radius = 8.0f;
-    m_speed = 4.0f;
+    m_speed = 0.0f;
     m_velocity = Vector(0.0f, 0.0f, 0.0f);
     m_u1 = m_v2 = 0.0f;
 	m_u2 = m_v4 = 0.0f;

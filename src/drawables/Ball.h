@@ -21,7 +21,7 @@ public:
     void reset()
     {
         m_isLaunched = false;
-        setSpeed(4.0f);
+        m_velocity = Vector(0.0f, 0.0f, 0.0f);
     }
 
     bool getIsLaunched() const
@@ -42,6 +42,8 @@ public:
     void setVelocity(const Vector& velocity)
     {
         m_velocity = velocity;
+        m_velocity.normalizeSelf();
+        m_velocity *= m_speed;
     }
 
     float getSpeed() const
@@ -52,8 +54,6 @@ public:
     void setSpeed(float speed)
     {
         m_speed = speed;
-        m_velocity.normalizeSelf();
-        m_velocity *= m_speed;
     }
 
     bool intersectsWith(Brick* brick) const;

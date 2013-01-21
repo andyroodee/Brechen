@@ -9,6 +9,14 @@
 class Game
 {
 public:
+
+    enum Difficulty
+    {
+        Easy = 0,
+        Medium,
+        Hard
+    };
+
     Game();
 
     void checkCollisions();
@@ -17,6 +25,13 @@ public:
     void loadLevel(int levelNumber);
 
     void onLostBall();
+
+    Difficulty getDifficulty() const
+    {
+        return m_difficulty;
+    }
+
+    void setDifficulty(Difficulty difficulty);
 
     int getScore() const
     {
@@ -59,6 +74,8 @@ private:
     RefPtr<Paddle> m_paddle;
     RefPtr<Ball> m_ball;
     RefPtr<Sound> m_wallBounce;
+    Difficulty m_difficulty;
+
 };
 
 #endif

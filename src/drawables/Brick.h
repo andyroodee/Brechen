@@ -14,10 +14,7 @@ public:
 
     virtual void draw(int list);
 
-    virtual void nextFrame()
-    {
-        Drawable::nextFrame();
-    }
+    void animateDestruction(const Vector& direction, const float power);
 
     int getWidth() const
     {
@@ -49,10 +46,16 @@ public:
         m_value = value;
     }
 
+    bool getIsAlive() const
+    {
+        return m_alive;
+    }
+
 private:
     int m_width;
     int m_height;
     int m_value;
+    int m_alive;
 };
 
 #endif

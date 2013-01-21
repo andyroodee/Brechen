@@ -6,6 +6,7 @@
 #include "../drawables/Ball.h"
 #include "../drawables/UI.h"
 #include "../drawables/Border.h"
+#include "../menus/TitleScreen.h"
 #include "Level.h"
 #include "SceneManager.h"
 #include "Game.h"
@@ -16,11 +17,18 @@ KOS_INIT_ROMDISK(romdisk);
 KOS_INIT_FLAGS(INIT_DEFAULT | INIT_NO_DCLOAD | INIT_QUIET);
 
 int main(int argc, char** argv)
-{    
+{        
+    pvr_init_defaults(); 
+
+    RefPtr<TitleScreen> titleScreen = new TitleScreen();
+    titleScreen->doMenu();
+    int difficulty = titleScreen->getDifficultySelection();
+    
     SceneManager sceneManager;
     sceneManager.setup();
     
     Game game;
+    game.setDifficulty((Game::Difficulty)difficulty);
     sceneManager.addDrawable(game.getPaddle());
     sceneManager.addDrawable(game.getBall());
     sceneManager.addDrawable(game.getLevel());

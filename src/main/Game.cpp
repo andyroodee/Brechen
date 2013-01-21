@@ -1,5 +1,6 @@
 #include "Game.h"
 
+#include <math.h>
 #include <kos.h>
 #include <tsu/texture.h>
 #include <tsu/vector.h>
@@ -11,6 +12,7 @@ Game::Game()
     m_score = 0;
     m_levelNumber = 1;
     m_lives = 3;
+    m_difficulty = Game::Easy;
     m_wallBounce = new Sound("/rd/sounds/wallbounce.wav");
     createPaddle();
     createBall();
@@ -30,7 +32,7 @@ void Game::createPaddle()
 
 void Game::createBall()
 {
-    RefPtr<Texture> ballTexture = new Texture("/rd/ball.png", true);
+    RefPtr<Texture> ballTexture = new Texture("/rd/ball2.png", true);
     m_ball = new Ball(ballTexture);
     m_ball->setTranslate(m_paddle->getPosition() + Vector(0.0f, -(m_ball->getHeight() / 2), 0.0f));
 }
@@ -53,6 +55,28 @@ void Game::onLostBall()
     {        
         m_ball->setTranslate(m_paddle->getPosition() + Vector(0.0f, -(m_ball->getHeight() / 2), 0.0f));
         m_ball->reset();
+    }
+}
+
+void Game::setDifficulty(Difficulty difficulty)
+{
+    m_difficulty = difficulty;
+    switch (m_difficulty)
+    {
+    case Easy:
+        m_paddle->setSpeed(6.0f);
+        m_ball->setSpeed(4.0f);
+        break;
+    case Medium:
+        m_paddle->setSpeed(5.0f);
+        m_ball->setSpeed(5.0f);
+        break;
+    case Hard:
+        m_paddle->setSpeed(4.0f);
+        m_ball->setSpeed(6.0f);
+        break;
+    default:
+        break;
     }
 }
 
@@ -126,8 +150,6 @@ void Game::checkCollisions()
         {
             m_wallBounce->play();
             Vector dir = thePaddlePosition - ballPosition;   
-            dir.normalizeSelf();
-            dir *= m_ball->getSpeed();
             m_ball->setVelocity(-dir);            
         }
     }
@@ -138,9 +160,10 @@ void Game::checkCollisions()
 
 void Game::updateControls()
 {
-    MAPLE_FOREACH_BEGIN(MAPLE_FUNC_CONTROLLER, cont_state_t, t)
-            
-    if (t->buttons & CONT_A)
+    maple_device_t* cont = maple_enum_type(0, MAPLE_FUNC_CONTROLLER);
+    cont_state_t* state = (cont_state_t *)maple_dev_status(cont);
+                
+    if (state->buttons & CONT_A)
     {
         if (!m_ball->getIsLaunched())
         {
@@ -150,7 +173,20 @@ void Game::updateControls()
 
     Vector paddlePosition = m_paddle->getPosition();
 
-    if (t->buttons & CONT_DPAD_LEFT)
+    if (fabs(state->joyx) > 1.0f)
+    {
+        paddlePosition.x += (state->joyx / 128.0f) * m_paddle->getSpeed();
+        int halfWidth = m_paddle->getWidth() / 2;
+        if (paddlePosition.x + halfWidth >= Border::RIGHT_BORDER)
+        {
+            paddlePosition.x = Border::RIGHT_BORDER - halfWidth;
+        }
+        if (paddlePosition.x - halfWidth <= Border::LEFT_BORDER)
+        {
+            paddlePosition.x = Border::LEFT_BORDER + halfWidth;
+        }
+    }
+    else if (state->buttons & CONT_DPAD_LEFT)
     {
         paddlePosition.x -= m_paddle->getSpeed();
         int halfWidth = m_paddle->getWidth() / 2;
@@ -160,7 +196,7 @@ void Game::updateControls()
         }
     }  
 
-    if (t->buttons & CONT_DPAD_RIGHT)
+    else if (state->buttons & CONT_DPAD_RIGHT)
     {
         paddlePosition.x += m_paddle->getSpeed();
         int halfWidth = m_paddle->getWidth() / 2;
@@ -168,7 +204,7 @@ void Game::updateControls()
         {
             paddlePosition.x = Border::RIGHT_BORDER - halfWidth;
         }
-    }  
+    }      
         
     if (!m_ball->getIsLaunched())
     {
@@ -176,6 +212,4 @@ void Game::updateControls()
     }
 
     m_paddle->setTranslate(paddlePosition); 
-
-    MAPLE_FOREACH_END() 
 }

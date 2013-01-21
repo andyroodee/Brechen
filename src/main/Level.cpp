@@ -59,14 +59,22 @@ void Level::unload()
 
 void Level::draw(int list)
 {
-    ListNode<Drawable> *t = (ListNode<Drawable>*)m_bricks.getHead();
+    ListNode<Drawable>* t = (ListNode<Drawable>*)m_bricks.getHead();
+    ListNode<Drawable>* n;
 	while (t) 
     {
+        n = t->getNext();
 		if (!(*t)->isFinished())
 		{
             (*t)->draw(list);
+            (*t)->nextFrame();
         }
-		t = t->getNext();
+        else
+        {
+            Brick* brick = (Brick*)t->getData();
+            m_bricks.del(brick);  
+        }
+		t = n;
 	}
 }
 
@@ -81,7 +89,7 @@ int Level::checkCollision(Ball* ball)
     {
         Brick* brick = brickNode->getData();
 
-        if (ball->intersectsWith(brick))
+        if (brick->getIsAlive() && ball->intersectsWith(brick))
         {
             m_brickBounce->play();
 
@@ -120,12 +128,13 @@ int Level::checkCollision(Ball* ball)
                 // Top or bottom.
                 newBallVelocity.y = -newBallVelocity.y;
             }
+            
+            brick->animateDestruction(ball->getVelocity(), ball->getSpeed() * 3);
 
-            ball->setVelocity(newBallVelocity); 
-                 
+            ball->setVelocity(newBallVelocity);             
+
             score += brick->getValue();
             brickNode = brickNode->getNext();
-            m_bricks.del(brick);  
             ++m_destroyedBrickCount;      
         }
         else
