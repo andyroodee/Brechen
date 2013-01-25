@@ -6,6 +6,8 @@
 #include <tsu/vector.h>
 #include <oggvorbis/sndoggvorbis.h>
 #include "../drawables/Border.h"
+#include "../drawables/Powerup.h"
+#include <stdlib.h>
 
 Game::Game()
 {
@@ -18,8 +20,15 @@ Game::Game()
     m_wallBounce = new Sound("/rd/sounds/wallbounce.wav");
     createPaddle();
     createBall();
-    m_currentLevel = new Level();
+    m_currentLevel = new Level(this);
+    subAdd(m_currentLevel);
     m_currentLevel->load(m_levelNumber);
+}
+
+void Game::draw(int list)
+{
+    subRemoveFinished();
+    subDraw(list);
 }
 
 void Game::createPaddle()
@@ -30,6 +39,7 @@ void Game::createPaddle()
     m_paddle->setTranslate(Vector(296.0f, 428.0f, 10.0f));
     m_paddle->setSize(48, 12);
     m_paddle->setSpeed(5.0f);
+    subAdd(m_paddle);
 }
 
 void Game::createBall()
@@ -37,10 +47,15 @@ void Game::createBall()
     RefPtr<Texture> ballTexture = new Texture("/rd/ball2.png", true);
     m_ball = new Ball(ballTexture);
     m_ball->setTranslate(m_paddle->getPosition() + Vector(0.0f, -(m_ball->getHeight() / 2), 0.0f));
+    subAdd(m_ball);
 }
 
 void Game::loadLevel(int level)
 {
+    for (int i = 0; i < Powerup::BAD_EFFECT_MAX; i++)
+    {
+        m_activePowerups[i] = 0;
+    }
     m_ball->reset();       
     m_levelNumber = level;
     m_currentLevel->load(m_levelNumber);
@@ -69,16 +84,28 @@ void Game::setDifficulty(Difficulty difficulty)
         m_paddle->setSpeed(6.0f);
         m_ball->setSpeed(4.0f);
         m_extraLifeScoreIncrement = 1000;
+        m_powerupChance = 15;
+        m_powerdownChance = 5;
+        m_powerupActiveTime = 5 * 60;
+        m_powerdownActiveTime = 3 * 60;
         break;
     case Medium:
         m_paddle->setSpeed(5.0f);
         m_ball->setSpeed(5.0f);
         m_extraLifeScoreIncrement = 2000;
+        m_powerupChance = 10;
+        m_powerdownChance = 10;
+        m_powerupActiveTime = 4 * 60;
+        m_powerdownActiveTime = 4 * 60;
         break;
     case Hard:
         m_paddle->setSpeed(4.0f);
         m_ball->setSpeed(6.0f);
         m_extraLifeScoreIncrement = 4000;
+        m_powerupChance = 5;
+        m_powerdownChance = 15;
+        m_powerupActiveTime = 3 * 60;
+        m_powerdownActiveTime = 5 * 60;
         break;
     default:
         break;
@@ -90,6 +117,14 @@ void Game::checkCollisions()
     if (!m_ball->getIsLaunched())
     {
         return;
+    }
+        
+    for (int i = 0; i < Powerup::BAD_EFFECT_MAX; i++)
+    {
+        if (m_activePowerups[i] > 0)
+        {
+            m_activePowerups[i]--;
+        }
     }
 
     // Ball and Paddle collision.
@@ -160,7 +195,17 @@ void Game::checkCollisions()
     }
 
     // Check the bricks.
+    int oldScore = m_score;
     m_score += m_currentLevel->checkCollision(m_ball);
+
+    // Check for powerup and paddle collisions
+    checkPowerups();
+
+    // See if we should spawn a new powerup
+    if (oldScore != m_score && !m_currentLevel->isCompleted())
+    {
+        spawnPowerups();
+    }
 
     if (m_score >= m_extraLifeScoreMultiplier * m_extraLifeScoreIncrement)
     {
@@ -168,6 +213,88 @@ void Game::checkCollisions()
         m_lives++;
         m_extraLifeScoreMultiplier++;
     }
+}
+
+void Game::checkPowerups()
+{
+    const Vector& thePaddlePosition = m_paddle->getPosition();
+    int halfPaddleHeight = m_paddle->getHeight() / 2;
+
+    ListNode<Powerup>* t = m_powerups.getHead();
+    ListNode<Powerup>* n;
+	while (t) 
+    {
+        n = t->getNext();
+		if (!(*t)->isFinished())
+		{
+            Powerup* powerup = (Powerup*)t->getData();
+            Vector powerupPosition = powerup->getPosition();
+            int halfPowerupHeight = powerup->getHeight() / 2;
+            int halfPowerupWidth = powerup->getWidth() / 2;
+            if (powerupPosition.y + halfPowerupHeight >= thePaddlePosition.y - halfPaddleHeight)
+            {
+                int halfPaddleWidth = m_paddle->getWidth() / 2;
+                if (powerupPosition.x + halfPowerupWidth >= thePaddlePosition.x - halfPaddleWidth && 
+                    powerupPosition.x - halfPowerupWidth <= thePaddlePosition.x + halfPaddleWidth)
+                {
+                    activatePowerup(powerup);
+                }
+            }
+        }
+        else
+        {
+            m_powerups.del(t->getData()); 
+        }
+		t = n;
+	}
+}
+
+void Game::activatePowerup(Powerup* powerup)
+{
+    Powerup::Effect effect = powerup->getEffect();
+    switch (effect)
+    {
+    case Powerup::ExtendPaddle:
+    case Powerup::ExtraBalls:
+    case Powerup::Powerball:
+    case Powerup::LaserPaddle: // Intentional fall-through for powerups
+        m_activePowerups[(int)effect] = m_powerupActiveTime;
+        break;   
+    case Powerup::ShrinkPaddle:
+    case Powerup::DoubleBallSpeed:
+    case Powerup::RandomBounce: // Intentional fall-through for powerdowns.
+        m_activePowerups[(int)effect] = m_powerdownActiveTime;
+        break;
+    default:
+        break;
+    }
+    subRemove(powerup);
+    m_powerups.del(powerup);
+}
+
+void Game::spawnPowerups()
+{
+    int powerupThreshold = rand() % 100;
+    if (powerupThreshold < m_powerupChance)
+    {
+        // Release a powerup
+        Powerup::Effect effect = (Powerup::Effect)(rand() % Powerup::GOOD_EFFECT_MAX);
+        RefPtr<Powerup> powerup = new Powerup(effect, m_ball->getPosition());
+        m_powerups.insertHead(powerup);
+        subAdd(powerup);
+        return;
+    }
+
+    int powerdownThreshold = rand() % 100;
+    if (powerdownThreshold < m_powerdownChance)
+    {
+        // Release a powerdown
+        Powerup::Effect effect = (Powerup::Effect)(rand() % (Powerup::BAD_EFFECT_MAX - (Powerup::GOOD_EFFECT_MAX + 1)) + (Powerup::GOOD_EFFECT_MAX + 1));
+        RefPtr<Powerup> powerup = new Powerup(effect, m_ball->getPosition());
+        m_powerups.insertHead(powerup);
+        subAdd(powerup);
+        return;
+    }    
 }
 
 void Game::updateControls()

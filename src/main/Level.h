@@ -6,6 +6,8 @@
 #include <tsu/drawables/scene.h>
 #include <tsu/sound.h>
 
+class Game;
+
 class Level : public Drawable
 {
 public:
@@ -26,7 +28,7 @@ public:
     static const int BRICK_START_X = 40;
     static const int BRICK_START_Y = 64;
 
-    Level();
+    Level(Game* parent);
 
     void load(int levelNumber);
 
@@ -43,6 +45,7 @@ private:
     int m_brickCount;
     int m_destroyedBrickCount;
     RefPtr<Sound> m_brickBounce;
+    Game* m_parentGame;
 };
 
 #endif

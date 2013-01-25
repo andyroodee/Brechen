@@ -1,8 +1,11 @@
 #include "Level.h"
+#include "Game.h"
 #include <math.h>
+#include <stdlib.h>
 
-Level::Level()
+Level::Level(Game* parentGame)
 {
+    m_parentGame = parentGame;
     m_brickCount = 0;
     m_destroyedBrickCount = 0;
     m_brickBounce = new Sound("/rd/sounds/brickbounce.wav");
@@ -128,10 +131,32 @@ int Level::checkCollision(Ball* ball)
                 // Top or bottom.
                 newBallVelocity.y = -newBallVelocity.y;
             }
-            
-            brick->animateDestruction(ball->getVelocity(), ball->getSpeed() * 3);
 
-            ball->setVelocity(newBallVelocity);             
+            if (m_parentGame->isPowerupActive(Powerup::RandomBounce))
+            {
+                newBallVelocity.x = rand() % 100;
+                newBallVelocity.y = rand() % 100;
+                if (rand() % 100 > 50)
+                {
+                    newBallVelocity.x = -newBallVelocity.x;
+                }
+                if (rand() % 100 > 50)
+                {
+                    newBallVelocity.y = -newBallVelocity.y;
+                }
+                newBallVelocity.normalizeSelf();
+                newBallVelocity *= ball->getSpeed();
+            }
+
+            if (m_parentGame->isPowerupActive(Powerup::Powerball))
+            {                
+                brick->animateDestruction(ball->getVelocity(), ball->getSpeed() * 6);
+            }
+            else
+            {
+                brick->animateDestruction(ball->getVelocity(), ball->getSpeed() * 3);
+                ball->setVelocity(newBallVelocity);             
+            }
 
             score += brick->getValue();
             brickNode = brickNode->getNext();

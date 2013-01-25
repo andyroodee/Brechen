@@ -2,11 +2,15 @@
 #define __BRECHEN_GAME_H
 
 #include <tsu/sound.h>
+#include <tsu/drawable.h>
 #include "../drawables/Paddle.h"
 #include "../drawables/Ball.h"
+#include "../drawables/Powerup.h"
 #include "Level.h"
 
-class Game
+class Powerup;
+
+class Game : public Drawable
 {
 public:
 
@@ -16,7 +20,7 @@ public:
         Medium,
         Hard
     };
-
+    
     Game();
 
     void checkCollisions();
@@ -48,25 +52,28 @@ public:
         return m_lives;
     }
 
-    Paddle* getPaddle() const
-    {
-        return m_paddle;
-    }
-
-    Ball* getBall() const
-    {
-        return m_ball;
-    }
-
     Level* getLevel() const
     {
         return m_currentLevel;
     }
 
+    bool isPowerupActive(Powerup::Effect effect) const
+    {
+        return m_activePowerups[(int)effect] > 0;
+    }
+
+    virtual void draw(int list);
+
 private:
     void createPaddle();
     void createBall();
+    void spawnPowerups();
+    void checkPowerups();
+    void activatePowerup(Powerup* powerup);
 
+    unsigned int m_activePowerups[Powerup::BAD_EFFECT_MAX];
+    unsigned int m_powerupActiveTime;
+    unsigned int m_powerdownActiveTime;
     int m_score;
     int m_extraLifeScoreMultiplier;
     int m_extraLifeScoreIncrement;
@@ -77,7 +84,9 @@ private:
     RefPtr<Ball> m_ball;
     RefPtr<Sound> m_wallBounce;
     Difficulty m_difficulty;
-
+    int m_powerupChance;
+    int m_powerdownChance;
+    List<Powerup> m_powerups;
 };
 
 #endif

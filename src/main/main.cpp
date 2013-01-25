@@ -6,10 +6,13 @@
 #include "../drawables/Ball.h"
 #include "../drawables/UI.h"
 #include "../drawables/Border.h"
+#include "../drawables/Powerup.h"
 #include "../menus/TitleScreen.h"
 #include "Level.h"
 #include "SceneManager.h"
 #include "Game.h"
+#include <time.h>
+#include <stdlib.h>
 
 extern uint8 romdisk[];
 KOS_INIT_ROMDISK(romdisk);
@@ -20,6 +23,8 @@ int main(int argc, char** argv)
 {        
     pvr_init_defaults(); 
 
+    srand(time(0));
+
     RefPtr<TitleScreen> titleScreen = new TitleScreen();
     titleScreen->doMenu();
     int difficulty = titleScreen->getDifficultySelection();
@@ -27,19 +32,17 @@ int main(int argc, char** argv)
     SceneManager sceneManager;
     sceneManager.setup();
     
-    Game game;
-    game.setDifficulty((Game::Difficulty)difficulty);
-    sceneManager.addDrawable(game.getPaddle());
-    sceneManager.addDrawable(game.getBall());
-    sceneManager.addDrawable(game.getLevel());
+    RefPtr<Game> game = new Game();
+    game->setDifficulty((Game::Difficulty)difficulty);
+    sceneManager.addDrawable(game);
     
     RefPtr<Font> font = new Font("/rd/typewriter.txf");
     font->setColor(0.1f, 0.4f, 0.9f);
         
     RefPtr<UI> mainUI = new UI(font, 16);
-    mainUI->updateScoreLabel(game.getScore());
-    mainUI->updateLivesLabel(game.getLives());
-    mainUI->updateLevelLabel(game.getLevelNumber());
+    mainUI->updateScoreLabel(game->getScore());
+    mainUI->updateLivesLabel(game->getLives());
+    mainUI->updateLevelLabel(game->getLevelNumber());
     sceneManager.addDrawable(mainUI);   
 
     RefPtr<Border> border = new Border();
@@ -59,28 +62,28 @@ int main(int argc, char** argv)
     {
         sceneManager.draw();
 
-        int oldScore = game.getScore();
-        int oldLives = game.getLives();
+        int oldScore = game->getScore();
+        int oldLives = game->getLives();
 
-        game.checkCollisions();
-        
-        if (oldScore != game.getScore())
+        game->checkCollisions();
+                
+        if (oldScore != game->getScore())
         {
-            mainUI->updateScoreLabel(game.getScore());
+            mainUI->updateScoreLabel(game->getScore());
         }
 
-        if (oldLives != game.getLives())
+        if (oldLives != game->getLives())
         {
-            mainUI->updateLivesLabel(game.getLives());
+            mainUI->updateLivesLabel(game->getLives());
         }
 
-        if (game.getLevel()->isCompleted())
+        if (game->getLevel()->isCompleted())
         {            
-            game.loadLevel(game.getLevelNumber() + 1);  
-            mainUI->updateLevelLabel(game.getLevelNumber());
+            game->loadLevel(game->getLevelNumber() + 1);  
+            mainUI->updateLevelLabel(game->getLevelNumber());
         }
 
-        game.updateControls();
+        game->updateControls();
     }
     
     sceneManager.teardown();
