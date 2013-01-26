@@ -1,28 +1,59 @@
 #include "Game.h"
-
 #include <math.h>
 #include <kos.h>
 #include <tsu/texture.h>
 #include <tsu/vector.h>
-#include <oggvorbis/sndoggvorbis.h>
 #include "../drawables/Border.h"
 #include "../drawables/Powerup.h"
+#include "../drawables/LaserBeam.h"
 #include <stdlib.h>
 
 Game::Game()
 {
+    for (int i = 0; i < Powerup::BAD_EFFECT_MAX; i++)
+    {
+        m_activePowerups[i] = 0;
+    }
+
     m_score = 0;
     m_extraLifeScoreMultiplier = 1;
     m_extraLifeScoreIncrement = 1000;
     m_levelNumber = 1;
     m_lives = 3;
+    m_lastLaserFireTime = LASER_FIRE_DELAY;
     m_difficulty = Game::Easy;
+    m_laserTexture = new Texture("/rd/powerups/laser.png", true);
+    m_extraBallTexture = new Texture("/rd/ball.png", true);
     m_wallBounce = new Sound("/rd/sounds/wallbounce.wav");
+    m_laserSound = new Sound("/rd/sounds/laser.wav");
+    m_lifeSound = new Sound("/rd/sounds/life.wav");
+    m_deathSound = new Sound("/rd/sounds/death.wav");
     createPaddle();
-    createBall();
+    createBall("/rd/ball2.png");
     m_currentLevel = new Level(this);
     subAdd(m_currentLevel);
     m_currentLevel->load(m_levelNumber);
+}
+
+void Game::reset()
+{    
+    for (int i = 0; i < Powerup::BAD_EFFECT_MAX; i++)
+    {
+        m_activePowerups[i] = 0;
+    }
+    subRemoveFinished();
+    m_score = 0;
+    m_extraLifeScoreMultiplier = 1;
+    m_extraLifeScoreIncrement = 1000;
+    m_levelNumber = 1;
+    m_lives = 3;
+    m_lastLaserFireTime = LASER_FIRE_DELAY;
+    m_difficulty = Game::Easy;
+    m_paddle->setTranslate(Vector(296.0f, 428.0f, 10.0f));        
+    m_balls[0]->reset();      
+    m_balls[0]->setTranslate(m_paddle->getPosition() + Vector(0.0f, -(m_balls[0]->getHeight() / 2), 0.0f));   
+    m_lasers.delAll();
+    m_powerups.delAll(); 
 }
 
 void Game::draw(int list)
@@ -42,21 +73,21 @@ void Game::createPaddle()
     subAdd(m_paddle);
 }
 
-void Game::createBall()
+void Game::createBall(const char* textureName)
 {
-    RefPtr<Texture> ballTexture = new Texture("/rd/ball2.png", true);
-    m_ball = new Ball(ballTexture);
-    m_ball->setTranslate(m_paddle->getPosition() + Vector(0.0f, -(m_ball->getHeight() / 2), 0.0f));
-    subAdd(m_ball);
+    RefPtr<Texture> ballTexture = new Texture(textureName, true);
+    m_balls[0] = new Ball(ballTexture);
+    m_balls[0]->setTranslate(m_paddle->getPosition() + Vector(0.0f, -(m_balls[0]->getHeight() / 2), 0.0f));
+    subAdd(m_balls[0]);
 }
 
 void Game::loadLevel(int level)
-{
-    for (int i = 0; i < Powerup::BAD_EFFECT_MAX; i++)
-    {
-        m_activePowerups[i] = 0;
-    }
-    m_ball->reset();       
+{    
+    subRemoveFinished();   
+    m_lasers.delAll();
+    m_powerups.delAll();
+    m_lastLaserFireTime = LASER_FIRE_DELAY;
+    m_balls[0]->reset();       
     m_levelNumber = level;
     m_currentLevel->load(m_levelNumber);
 }
@@ -64,14 +95,11 @@ void Game::loadLevel(int level)
 void Game::onLostBall()
 {
     m_lives--;
-    if (m_lives < 0)
+    m_deathSound->play();
+    if (m_lives > 0)
     {
-        // TODO: Game Over!
-    }
-    else
-    {        
-        m_ball->setTranslate(m_paddle->getPosition() + Vector(0.0f, -(m_ball->getHeight() / 2), 0.0f));
-        m_ball->reset();
+        m_balls[0]->setTranslate(m_paddle->getPosition() + Vector(0.0f, -(m_balls[0]->getHeight() / 2), 0.0f));
+        m_balls[0]->reset();
     }
 }
 
@@ -82,7 +110,7 @@ void Game::setDifficulty(Difficulty difficulty)
     {
     case Easy:
         m_paddle->setSpeed(6.0f);
-        m_ball->setSpeed(4.0f);
+        m_balls[0]->setSpeed(4.0f);
         m_extraLifeScoreIncrement = 1000;
         m_powerupChance = 15;
         m_powerdownChance = 5;
@@ -91,7 +119,7 @@ void Game::setDifficulty(Difficulty difficulty)
         break;
     case Medium:
         m_paddle->setSpeed(5.0f);
-        m_ball->setSpeed(5.0f);
+        m_balls[0]->setSpeed(5.0f);
         m_extraLifeScoreIncrement = 2000;
         m_powerupChance = 10;
         m_powerdownChance = 10;
@@ -100,7 +128,7 @@ void Game::setDifficulty(Difficulty difficulty)
         break;
     case Hard:
         m_paddle->setSpeed(4.0f);
-        m_ball->setSpeed(6.0f);
+        m_balls[0]->setSpeed(6.0f);
         m_extraLifeScoreIncrement = 4000;
         m_powerupChance = 5;
         m_powerdownChance = 15;
@@ -114,7 +142,7 @@ void Game::setDifficulty(Difficulty difficulty)
 
 void Game::checkCollisions()
 {
-    if (!m_ball->getIsLaunched())
+    if (!m_balls[0]->getIsLaunched())
     {
         return;
     }
@@ -124,95 +152,162 @@ void Game::checkCollisions()
         if (m_activePowerups[i] > 0)
         {
             m_activePowerups[i]--;
+            if (m_activePowerups[i] == 0)
+            {
+                deactivatePowerup((Powerup::Effect)i);
+            }
         }
     }
 
     // Ball and Paddle collision.
-    const Vector& ballPosition = m_ball->getPosition();
-    int halfBallWidth = m_ball->getWidth() / 2;
-    if (ballPosition.x - halfBallWidth <= Border::LEFT_BORDER || ballPosition.x + halfBallWidth >= Border::RIGHT_BORDER)
+    for (int i = 0; i < MAX_BALLS; i++)
     {
-        m_wallBounce->play();
-        // Bouncing off a side wall. Reflect about the x axis.
-        Vector velocity = m_ball->getVelocity();
-        velocity.x = -velocity.x;
-        m_ball->setVelocity(velocity);
-        
-        // Make sure it doesn't get stuck in the wall...
-        if (ballPosition.x - halfBallWidth <= Border::LEFT_BORDER)
+        if (!m_balls[i] || m_balls[i]->isFinished())
         {
-            m_ball->setTranslate(ballPosition + Vector(1.0f, 0.0f, 0.0f));
+            continue;
         }
-        else
-        {
-            m_ball->setTranslate(ballPosition + Vector(-1.0f, 0.0f, 0.0f));
-        }
-        return;
-    }
-
-    int halfBallHeight = m_ball->getHeight() / 2;
-    if (ballPosition.y - halfBallHeight <= Border::TOP_BORDER)
-    {
-        m_wallBounce->play();
-        // Bouncing off the top wall. Reflect about the y axis.
-        Vector velocity = m_ball->getVelocity();
-        velocity.y = -velocity.y;
-        m_ball->setVelocity(velocity);
-
-        // Make sure it doesn't get stuck in the wall...
-        m_ball->setTranslate(ballPosition + Vector(0.0f, 1.0f, 0.0f));
-        return;
-    }
-    
-    if (ballPosition.y >= Border::BOTTOM_BORDER)
-    {
-        // Bouncing off the top wall. Reflect about the y axis.
-        Vector velocity = m_ball->getVelocity();
-        velocity.y = -velocity.y;
-        m_ball->setVelocity(velocity);
-
-        // Make sure it doesn't get stuck in the wall...
-        m_ball->setTranslate(ballPosition + Vector(0.0f, -1.0f, 0.0f));
-        return;
-        //// We die!
-        //onLostBall();
-        //return;
-    }
-
-    const Vector& thePaddlePosition = m_paddle->getPosition();
-    int halfPaddleHeight = m_paddle->getHeight() / 2;
-    if (ballPosition.y + halfBallHeight >= thePaddlePosition.y - halfPaddleHeight)
-    {
-        int halfPaddleWidth = m_paddle->getWidth() / 2;
-        // We're lined up on the Y axis. Are we also within the X bounds?
-        if (ballPosition.x + halfBallWidth >= thePaddlePosition.x - halfPaddleWidth && 
-            ballPosition.x - halfBallWidth <= thePaddlePosition.x + halfPaddleWidth)
+        const Vector& ballPosition = m_balls[i]->getPosition();
+        int halfBallWidth = m_balls[i]->getWidth() / 2;
+        if (ballPosition.x - halfBallWidth <= Border::LEFT_BORDER || ballPosition.x + halfBallWidth >= Border::RIGHT_BORDER)
         {
             m_wallBounce->play();
-            Vector dir = thePaddlePosition - ballPosition;   
-            m_ball->setVelocity(-dir);            
+            if (isPowerupActive(Powerup::RandomBounce))
+            {
+                m_balls[i]->doRandomBounce();
+            }
+            else
+            {
+                // Bouncing off a side wall. Reflect about the x axis.
+                Vector velocity = m_balls[i]->getVelocity();
+                velocity.x = -velocity.x;
+                m_balls[i]->setVelocity(velocity);
+            }
+        
+            // Make sure it doesn't get stuck in the wall...
+            if (ballPosition.x - halfBallWidth <= Border::LEFT_BORDER)
+            {
+                m_balls[i]->setTranslate(Vector(Border::LEFT_BORDER + halfBallWidth, ballPosition.y, ballPosition.z));
+            }
+            else if (ballPosition.x + halfBallWidth >= Border::RIGHT_BORDER)
+            {
+                m_balls[i]->setTranslate(Vector(Border::RIGHT_BORDER - halfBallWidth, ballPosition.y, ballPosition.z));
+            }
+            
+            continue;
         }
+
+        int halfBallHeight = m_balls[i]->getHeight() / 2;
+        if (ballPosition.y - halfBallHeight <= Border::TOP_BORDER)
+        {
+            m_wallBounce->play();
+            if (isPowerupActive(Powerup::RandomBounce))
+            {
+                m_balls[i]->doRandomBounce();
+                Vector velocity = m_balls[i]->getVelocity();
+                if (velocity.y <= 0.0f)
+                {
+                    velocity.y = -velocity.y;
+                    m_balls[i]->setVelocity(velocity);
+                }
+            }
+            else
+            {
+                // Bouncing off the top wall. Reflect about the y axis.
+                Vector velocity = m_balls[i]->getVelocity();
+                velocity.y = -velocity.y;
+                m_balls[i]->setVelocity(velocity);
+            }
+
+            // Make sure it doesn't get stuck in the wall...
+            m_balls[i]->setTranslate(Vector(ballPosition.x, Border::TOP_BORDER + halfBallHeight, ballPosition.z));
+            
+            continue;
+        }
+
+        const Vector& thePaddlePosition = m_paddle->getPosition();
+        int halfPaddleHeight = m_paddle->getHeight() / 2;
+        if (ballPosition.y + halfBallHeight >= thePaddlePosition.y - halfPaddleHeight)
+        {
+            int halfPaddleWidth = m_paddle->getWidth() / 2;
+            // We're lined up on the Y axis. Are we also within the X bounds?
+            if (ballPosition.x + halfBallWidth >= thePaddlePosition.x - halfPaddleWidth && 
+                ballPosition.x - halfBallWidth <= thePaddlePosition.x + halfPaddleWidth)
+            {
+                m_wallBounce->play();
+                Vector dir = thePaddlePosition - ballPosition;   
+                m_balls[i]->setVelocity(-dir);    
+            }
+        }
+    }
+
+    if (m_balls[0]->getPosition().y >= Border::BOTTOM_BORDER)
+    {
+        onLostBall();
+        return;
     }
 
     // Check the bricks.
     int oldScore = m_score;
-    m_score += m_currentLevel->checkCollision(m_ball);
-
-    // Check for powerup and paddle collisions
-    checkPowerups();
-
-    // See if we should spawn a new powerup
-    if (oldScore != m_score && !m_currentLevel->isCompleted())
+    for (int i = 0; i < MAX_BALLS; i++)
     {
-        spawnPowerups();
+        if (!m_balls[i] || m_balls[i]->isFinished())
+        {
+            continue;
+        }
+        m_score += m_currentLevel->checkCollision(m_balls[i]);
+        
+        // See if we should spawn a new powerup
+        if (oldScore != m_score && !m_currentLevel->isCompleted())
+        {
+            spawnPowerups(m_balls[i]->getPosition());
+        }
     }
 
+    m_score += checkLaserBeamCollisions();
+
+    // Check for powerup and paddle collisions
+    checkPowerups();    
+
     if (m_score >= m_extraLifeScoreMultiplier * m_extraLifeScoreIncrement)
-    {
-        // TODO: Play some 1up sound effect
+    {        
+        m_lifeSound->play();
         m_lives++;
         m_extraLifeScoreMultiplier++;
     }
+}
+
+int Game::checkLaserBeamCollisions()
+{
+    int score = 0;
+
+    ListNode<LaserBeam>* t = m_lasers.getHead();
+    ListNode<LaserBeam>* n;
+	while (t) 
+    {
+        n = t->getNext();
+		if (!(*t)->isFinished())
+		{
+            LaserBeam* laser = (LaserBeam*)t->getData();
+            int laserScore = m_currentLevel->checkCollision(laser);
+            if (laserScore > 0)
+            {
+                laser->setFinished(); 
+                subRemove(laser);
+                t->remove();
+			    delete t;  
+            }
+        }
+        else
+        {
+            LaserBeam* laser = (LaserBeam*)t->getData();
+            subRemove(laser);
+            t->remove();
+			delete t;  
+        }
+		t = n;
+	}
+
+    return score;
 }
 
 void Game::checkPowerups()
@@ -243,7 +338,10 @@ void Game::checkPowerups()
         }
         else
         {
-            m_powerups.del(t->getData()); 
+            Powerup* powerup = (Powerup*)t->getData();
+            subRemove(powerup);
+            t->remove();
+			delete t; 
         }
 		t = n;
 	}
@@ -252,34 +350,117 @@ void Game::checkPowerups()
 void Game::activatePowerup(Powerup* powerup)
 {
     Powerup::Effect effect = powerup->getEffect();
+        
+    // Don't want to activate if we're already activated.
+    if (isPowerupActive(effect))
+    {        
+        subRemove(powerup);
+        m_powerups.del(powerup);
+        return;
+    }
+
+    // Set up any powerup-specific stuff in here.
     switch (effect)
     {
     case Powerup::ExtendPaddle:
+        m_paddle->setScale(Vector(2.0f, 1.0f, 1.0f));
+        break;
     case Powerup::ExtraBalls:
+        for (int i = 1; i < MAX_BALLS; i++)
+        {
+            m_balls[i] = new Ball(m_extraBallTexture);
+            m_balls[i]->setTranslate(m_balls[0]->getPosition());
+            m_balls[i]->setSpeed(m_balls[0]->getSpeed());
+            // Apply a random bounce, but make sure Y is moving up so
+            // that the bonus balls don't immediately streak towards the
+            // exit.
+            m_balls[i]->doRandomBounce(true);
+            subAdd(m_balls[i]);
+        }
+        break;
     case Powerup::Powerball:
-    case Powerup::LaserPaddle: // Intentional fall-through for powerups
-        m_activePowerups[(int)effect] = m_powerupActiveTime;
+        break;
+    case Powerup::LaserPaddle:        
         break;   
     case Powerup::ShrinkPaddle:
-    case Powerup::DoubleBallSpeed:
-    case Powerup::RandomBounce: // Intentional fall-through for powerdowns.
-        m_activePowerups[(int)effect] = m_powerdownActiveTime;
+        m_paddle->setScale(Vector(0.5f, 1.0f, 1.0f));
+        break;
+    case Powerup::DoubleBallSpeed:            
+        m_previousBallSpeed = m_balls[0]->getSpeed();
+        for (int i = 0; i < MAX_BALLS; i++)
+        {
+            if (!m_balls[i] || m_balls[i]->isFinished())
+            {
+                continue;
+            }
+            m_balls[i]->setSpeed(m_previousBallSpeed*1.5f);
+            m_balls[i]->updateVelocity();
+        }
+        break;
+    case Powerup::RandomBounce: 
         break;
     default:
         break;
     }
+
+    if ((int)effect < (int)Powerup::GOOD_EFFECT_MAX)
+    {
+        m_activePowerups[(int)effect] = m_powerupActiveTime;
+    }
+    else
+    {
+        m_activePowerups[(int)effect] = m_powerdownActiveTime;
+    }
+
     subRemove(powerup);
     m_powerups.del(powerup);
 }
 
-void Game::spawnPowerups()
+void Game::deactivatePowerup(Powerup::Effect effect)
+{
+    // Undo whatever horrible thing you did for the powerup to work in here.
+    switch (effect)
+    {
+    case Powerup::ExtendPaddle:
+        m_paddle->setScale(Vector(1.0f, 1.0f, 1.0f));
+        break;
+    case Powerup::ShrinkPaddle:
+        m_paddle->setScale(Vector(1.0f, 1.0f, 1.0f));
+        break;
+    case Powerup::DoubleBallSpeed:
+        for (int i = 0; i < MAX_BALLS; i++)
+        {
+            if (!m_balls[i] || m_balls[i]->isFinished())
+            {
+                continue;
+            }
+            m_balls[i]->setSpeed(m_previousBallSpeed);  
+            m_balls[i]->updateVelocity();
+        }
+        break;
+    case Powerup::ExtraBalls:
+        for (int i = 1; i < MAX_BALLS; i++)
+        {
+            m_balls[i]->setFinished();
+        }
+        break;
+    default:
+        break;
+    }
+}
+
+void Game::spawnPowerups(const Vector& position)
 {
     int powerupThreshold = rand() % 100;
     if (powerupThreshold < m_powerupChance)
     {
         // Release a powerup
         Powerup::Effect effect = (Powerup::Effect)(rand() % Powerup::GOOD_EFFECT_MAX);
-        RefPtr<Powerup> powerup = new Powerup(effect, m_ball->getPosition());
+        if (isPowerupActive(effect))
+        {
+            return;
+        }
+        RefPtr<Powerup> powerup = new Powerup(effect, position);
         m_powerups.insertHead(powerup);
         subAdd(powerup);
         return;
@@ -290,7 +471,11 @@ void Game::spawnPowerups()
     {
         // Release a powerdown
         Powerup::Effect effect = (Powerup::Effect)(rand() % (Powerup::BAD_EFFECT_MAX - (Powerup::GOOD_EFFECT_MAX + 1)) + (Powerup::GOOD_EFFECT_MAX + 1));
-        RefPtr<Powerup> powerup = new Powerup(effect, m_ball->getPosition());
+        if (isPowerupActive(effect))
+        {
+            return;
+        }
+        RefPtr<Powerup> powerup = new Powerup(effect, position);
         m_powerups.insertHead(powerup);
         subAdd(powerup);
         return;
@@ -301,13 +486,30 @@ void Game::updateControls()
 {
     maple_device_t* cont = maple_enum_type(0, MAPLE_FUNC_CONTROLLER);
     cont_state_t* state = (cont_state_t *)maple_dev_status(cont);
-                
+          
     if (state->buttons & CONT_A)
     {
-        if (!m_ball->getIsLaunched())
+        if (!m_balls[0]->getIsLaunched())
         {
-            m_ball->launch();
+            m_balls[0]->launch();
         }
+        if (isPowerupActive(Powerup::LaserPaddle))
+        {
+            if (m_lastLaserFireTime >= LASER_FIRE_DELAY)
+            {
+                m_lastLaserFireTime = 0;
+                m_laserSound->play();
+                RefPtr<LaserBeam> laser = new LaserBeam(m_laserTexture);
+                laser->setTranslate(m_paddle->getPosition());
+                m_lasers.insertHead(laser);
+                subAdd(laser);
+            }
+        }
+    }
+              
+    if (isPowerupActive(Powerup::LaserPaddle))
+    {
+        m_lastLaserFireTime++;
     }
 
     Vector paddlePosition = m_paddle->getPosition();
@@ -345,9 +547,9 @@ void Game::updateControls()
         }
     }      
         
-    if (!m_ball->getIsLaunched())
+    if (!m_balls[0]->getIsLaunched())
     {
-        m_ball->setTranslate(paddlePosition + Vector(0.0f, -(m_ball->getHeight()), 0.0f));
+        m_balls[0]->setTranslate(paddlePosition + Vector(0.0f, -(m_balls[0]->getHeight()), 0.0f));
     }
 
     m_paddle->setTranslate(paddlePosition); 

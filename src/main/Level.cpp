@@ -1,7 +1,7 @@
 #include "Level.h"
 #include "Game.h"
 #include <math.h>
-#include <stdlib.h>
+#include "../drawables/LaserBeam.h"
 
 Level::Level(Game* parentGame)
 {
@@ -81,6 +81,36 @@ void Level::draw(int list)
 	}
 }
 
+int Level::checkCollision(LaserBeam* laser)
+{
+    int score = 0;
+
+    ListNode<Brick>* brickNode = m_bricks.getHead();
+    while (brickNode)
+    {
+        Brick* brick = brickNode->getData();
+
+        if (brick->getIsAlive() && laser->isHitting(brick))
+        {
+            // TODO: Play a special laser destruction sound.
+            m_brickBounce->play();
+                       
+            // TODO: Animate in an interesting way
+            brick->animateDestruction(Vector(0.0f, -1.0f, 0.0f), 5.0f);   
+            
+            score += brick->getValue();
+            brickNode = brickNode->getNext();
+            ++m_destroyedBrickCount;      
+        }
+        else
+        {
+            brickNode = brickNode->getNext();
+        }
+    }
+
+    return score;
+}
+
 int Level::checkCollision(Ball* ball)
 {
     const Vector& ballPosition = ball->getPosition();
@@ -131,31 +161,20 @@ int Level::checkCollision(Ball* ball)
                 // Top or bottom.
                 newBallVelocity.y = -newBallVelocity.y;
             }
-
-            if (m_parentGame->isPowerupActive(Powerup::RandomBounce))
-            {
-                newBallVelocity.x = rand() % 100;
-                newBallVelocity.y = rand() % 100;
-                if (rand() % 100 > 50)
-                {
-                    newBallVelocity.x = -newBallVelocity.x;
-                }
-                if (rand() % 100 > 50)
-                {
-                    newBallVelocity.y = -newBallVelocity.y;
-                }
-                newBallVelocity.normalizeSelf();
-                newBallVelocity *= ball->getSpeed();
-            }
-
+            
             if (m_parentGame->isPowerupActive(Powerup::Powerball))
             {                
-                brick->animateDestruction(ball->getVelocity(), ball->getSpeed() * 6);
+                brick->animateDestruction(ball->getVelocity(), ball->getSpeed() * 9);
             }
             else
             {
-                brick->animateDestruction(ball->getVelocity(), ball->getSpeed() * 3);
-                ball->setVelocity(newBallVelocity);             
+                brick->animateDestruction(ball->getVelocity(), ball->getSpeed() * 3);   
+                ball->setVelocity(newBallVelocity);          
+            }
+            
+            if (m_parentGame->isPowerupActive(Powerup::RandomBounce))
+            {
+                ball->doRandomBounce();
             }
 
             score += brick->getValue();

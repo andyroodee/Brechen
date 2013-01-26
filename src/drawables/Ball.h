@@ -46,6 +46,12 @@ public:
         m_velocity *= m_speed;
     }
 
+    void updateVelocity() 
+    {        
+        m_velocity.normalizeSelf();
+        m_velocity *= m_speed;
+    }
+
     float getSpeed() const
     {
         return m_speed;
@@ -55,6 +61,8 @@ public:
     {
         m_speed = speed;
     }
+
+    void doRandomBounce(bool forceUpdwardBounce = true);
 
     bool intersectsWith(Brick* brick) const;
 

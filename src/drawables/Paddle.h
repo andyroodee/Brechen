@@ -25,12 +25,22 @@ public:
 
     float getWidth() const
     {
-        return m_width;
+        float width = m_width;
+
+	    const Vector& sv = getScale();
+	    width *= sv.x;
+
+        return width;
     }
 
     float getHeight() const
     {
-        return m_height;
+        float height = m_height;
+
+	    const Vector& sv = getScale();
+	    height *= sv.y;
+
+        return height;
     }
 
     float getSpeed() const

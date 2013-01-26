@@ -1,18 +1,15 @@
 #include <kos.h>
 #include <tsu/texture.h>
 #include <tsu/drawables/banner.h>
-#include "../drawables/Paddle.h"
-#include "../drawables/Brick.h"
-#include "../drawables/Ball.h"
 #include "../drawables/UI.h"
 #include "../drawables/Border.h"
-#include "../drawables/Powerup.h"
 #include "../menus/TitleScreen.h"
 #include "Level.h"
 #include "SceneManager.h"
 #include "Game.h"
 #include <time.h>
 #include <stdlib.h>
+#include <oggvorbis/sndoggvorbis.h>
 
 extern uint8 romdisk[];
 KOS_INIT_ROMDISK(romdisk);
@@ -21,25 +18,28 @@ KOS_INIT_FLAGS(INIT_DEFAULT | INIT_NO_DCLOAD | INIT_QUIET);
 
 int main(int argc, char** argv)
 {        
-    pvr_init_defaults(); 
+    pvr_init_defaults();     
 
     srand(time(0));
-
-    RefPtr<TitleScreen> titleScreen = new TitleScreen();
-    titleScreen->doMenu();
-    int difficulty = titleScreen->getDifficultySelection();
     
     SceneManager sceneManager;
     sceneManager.setup();
+
+    sndoggvorbis_start("/cd/music/brechen.ogg", 0);
+    RefPtr<TitleScreen> titleScreen = new TitleScreen();
+    titleScreen->doMenu();
+    int difficulty = titleScreen->getDifficultySelection();
+    sndoggvorbis_stop();
+    
+    pvr_set_bg_color(0.0f, 0.0f, 0.2f);
     
     RefPtr<Game> game = new Game();
-    game->setDifficulty((Game::Difficulty)difficulty);
+    game->setDifficulty((Game::Difficulty)difficulty);    
     sceneManager.addDrawable(game);
     
-    RefPtr<Font> font = new Font("/rd/typewriter.txf");
-    font->setColor(0.1f, 0.4f, 0.9f);
+    RefPtr<Font> font = new Font("/rd/fonts/arista.txf");
         
-    RefPtr<UI> mainUI = new UI(font, 16);
+    RefPtr<UI> mainUI = new UI(font, 12);
     mainUI->updateScoreLabel(game->getScore());
     mainUI->updateLivesLabel(game->getLives());
     mainUI->updateLevelLabel(game->getLevelNumber());
@@ -60,30 +60,48 @@ int main(int argc, char** argv)
     bool done = false;
     while (!done) 
     {
-        sceneManager.draw();
+        if (game->getLives() > 0)
+        {
+            sceneManager.draw();
 
-        int oldScore = game->getScore();
-        int oldLives = game->getLives();
+            int oldScore = game->getScore();
+            int oldLives = game->getLives();
 
-        game->checkCollisions();
+            game->checkCollisions();
                 
-        if (oldScore != game->getScore())
-        {
-            mainUI->updateScoreLabel(game->getScore());
-        }
+            if (oldScore != game->getScore())
+            {
+                mainUI->updateScoreLabel(game->getScore());
+            }
 
-        if (oldLives != game->getLives())
-        {
-            mainUI->updateLivesLabel(game->getLives());
-        }
+            if (oldLives != game->getLives())
+            {
+                mainUI->updateLivesLabel(game->getLives());
+            }
 
-        if (game->getLevel()->isCompleted())
+            if (game->getLevel()->isCompleted())
+            {            
+                game->loadLevel(game->getLevelNumber() + 1);  
+                mainUI->updateLevelLabel(game->getLevelNumber());
+            }
+
+            game->updateControls();
+        }
+        else
         {            
-            game->loadLevel(game->getLevelNumber() + 1);  
+            sndoggvorbis_start("/cd/music/brechen.ogg", 0);
+            titleScreen = new TitleScreen();
+            titleScreen->doMenu();
+            int difficulty = titleScreen->getDifficultySelection();            
+            sndoggvorbis_stop();
+            game->reset();            
+            game->setDifficulty((Game::Difficulty)difficulty);    
+            game->loadLevel(1);
+            mainUI->updateScoreLabel(game->getScore());
+            mainUI->updateLivesLabel(game->getLives());
             mainUI->updateLevelLabel(game->getLevelNumber());
+            pvr_set_bg_color(0.0f, 0.0f, 0.2f);
         }
-
-        game->updateControls();
     }
     
     sceneManager.teardown();

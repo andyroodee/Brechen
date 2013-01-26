@@ -7,6 +7,7 @@
 #include <tsu/sound.h>
 
 class Game;
+class LaserBeam;
 
 class Level : public Drawable
 {
@@ -35,6 +36,8 @@ public:
     bool isCompleted() const;
 
     int checkCollision(Ball* ball);
+
+    int checkCollision(LaserBeam* laser);
     
     virtual void draw(int list);
 

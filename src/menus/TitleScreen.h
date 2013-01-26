@@ -5,6 +5,7 @@
 #include <tsu/drawables/label.h>
 #include <tsu/texture.h>
 #include <tsu/drawables/banner.h>
+#include <tsu/sound.h>
 
 class TitleScreen : public GenericMenu, public RefCnt
 {
@@ -35,6 +36,7 @@ private:
     Color m_selectedColour;
     Color m_normalColour;
     MenuState m_state;
+    RefPtr<Sound> m_clickSound;
 };
 
 #endif

@@ -1,4 +1,5 @@
 #include <math.h>
+#include <stdlib.h>
 #include "Ball.h"
 #include "Brick.h"
 
@@ -43,6 +44,21 @@ float Ball::getHeight() const
 	height *= sv.y;
 
     return height;
+}
+
+void Ball::doRandomBounce(bool forceUpdwardBounce)
+{
+    m_velocity.x = rand() % 100;
+    m_velocity.y = rand() % 100;
+    if (rand() % 100 > 50)
+    {
+        m_velocity.x = -m_velocity.x;
+    }
+    if (forceUpdwardBounce || rand() % 100 > 50)
+    {
+        m_velocity.y = -m_velocity.y;
+    }
+    updateVelocity();
 }
 
 bool Ball::intersectsWith(Brick* brick) const
@@ -99,9 +115,14 @@ void Ball::draw(int list)
 	w *= sv.x;
 	h *= sv.y;
 
-    translate(m_velocity);
+    if (fabs(m_velocity.y - 0.0f) < 0.01f)
+    {
+        m_velocity.y = 0.1f;
+    }
 
-	const Vector& tv = getPosition();
+    translate(m_velocity);
+        
+    const Vector& tv = getPosition();
     
 	plx_vertex_t vert;
 	vert.argb = getColor();

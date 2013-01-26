@@ -5,40 +5,41 @@
 
 TitleScreen::TitleScreen()
 {
+    m_clickSound = new Sound("/rd/sounds/menuclick.wav");
     m_state = TitleScreen::AtTitleScreen;
 
     m_scene->setTranslate(Vector(320, 240, 10));
-    setBg(0.0f, 0.0f, 0.0f);
+    setBg(0.0f, 0.0f, 0.2f);
     
     RefPtr<Texture> titleTexture = new Texture("/rd/title.png", true);
     titleTexture->setFilter(Texture::FilterNone);
     m_titleImage = new Banner(PVR_LIST_TR_POLY, titleTexture);
     m_scene->subAdd(m_titleImage);
 
-    m_selectedColour = Color(0.3f, 0.9f, 1.0f);
-    m_normalColour = Color(0.1f, 0.7f, 0.8f);
+    m_selectedColour = Color(0.9f, 0.1f, 1.0f);
+    m_normalColour = Color(1.0f, 1.0f, 1.0f);
 
-    RefPtr<Font> font = new Font("/rd/typewriter.txf");
+    RefPtr<Font> font = new Font("/rd/fonts/phatrave.txf");
     
     // Setup three labels and have them zoom in.
-    m_startOption = new Label(font, "Push Start", 24, true, true);
-    m_startOption->setTranslate(Vector(600, 0, 0));
+    m_startOption = new Label(font, "Push Start", 36, true, false);
+    m_startOption->setTranslate(Vector(0, -600, 0));
     m_startOption->animAdd(new LogXYMover(0, 75));
     m_startOption->setTint(m_selectedColour);
     m_scene->subAdd(m_startOption);
 
-    m_difficultyOptions[0] = new Label(font, "Easy", 24, true, true);
-    m_difficultyOptions[0]->setTranslate(Vector(600, 0, 0));
+    m_difficultyOptions[0] = new Label(font, "Easy", 36, true, false);
+    m_difficultyOptions[0]->setTranslate(Vector(0, -600, 0));
     m_difficultyOptions[0]->setTint(m_selectedColour);
     m_scene->subAdd(m_difficultyOptions[0]);
 
-    m_difficultyOptions[1] = new Label(font, "Medium", 24, true, true);
-    m_difficultyOptions[1]->setTranslate(Vector(600, 0, 0));
+    m_difficultyOptions[1] = new Label(font, "Medium", 36, true, true);
+    m_difficultyOptions[1]->setTranslate(Vector(0, -600, 0));
     m_difficultyOptions[1]->setTint(m_normalColour);
     m_scene->subAdd(m_difficultyOptions[1]);
 
-    m_difficultyOptions[2] = new Label(font, "Hard", 24, true, true);
-    m_difficultyOptions[2]->setTranslate(Vector(600, 0, 0));
+    m_difficultyOptions[2] = new Label(font, "Hard", 36, true, true);
+    m_difficultyOptions[2]->setTranslate(Vector(0, -600, 0));
     m_difficultyOptions[2]->setTint(m_normalColour);
     m_scene->subAdd(m_difficultyOptions[2]);
 
@@ -52,6 +53,8 @@ void TitleScreen::inputEvent(const Event& evt)
         return;
     }
 
+    m_clickSound->play();
+
     switch (evt.key)
     {
     case Event::KeyStart:
@@ -60,12 +63,12 @@ void TitleScreen::inputEvent(const Event& evt)
         {
             m_state = TitleScreen::AtDifficultySelect;
             // Slide out the start prompt.
-            m_startOption->animAdd(new LogXYMover(-600, 0));
+            m_startOption->animAdd(new LogXYMover(0, -600));
 
             // Slide in the difficulty select options.
             for (int i = 0; i < NUM_OF_DIFFICULTIES; i++) 
             {          
-                m_difficultyOptions[i]->animAdd(new LogXYMover((i-1) * 100, 75));     
+                m_difficultyOptions[i]->animAdd(new LogXYMover(0, 100 + (i-1) * 50));     
             }
         }
         else
@@ -73,7 +76,7 @@ void TitleScreen::inputEvent(const Event& evt)
             startExit();
         }
         break;
-    case Event::KeyLeft:
+    case Event::KeyUp:
         if (m_state == TitleScreen::AtDifficultySelect)
         {
             m_difficultySelection--;
@@ -84,7 +87,7 @@ void TitleScreen::inputEvent(const Event& evt)
             }
         }
         break;
-    case Event::KeyRight:
+    case Event::KeyDown:
         if (m_state == TitleScreen::AtDifficultySelect)
         {
             m_difficultySelection++;

@@ -23,7 +23,10 @@ public:
     
     Game();
 
+    void reset();
+
     void checkCollisions();
+    int checkLaserBeamCollisions();
     void updateControls();
 
     void loadLevel(int levelNumber);
@@ -66,10 +69,13 @@ public:
 
 private:
     void createPaddle();
-    void createBall();
-    void spawnPowerups();
+    void createBall(const char* textureName);
+    void spawnPowerups(const Vector& position);
     void checkPowerups();
     void activatePowerup(Powerup* powerup);
+    void deactivatePowerup(Powerup::Effect effect);
+
+    static const int MAX_BALLS = 3;
 
     unsigned int m_activePowerups[Powerup::BAD_EFFECT_MAX];
     unsigned int m_powerupActiveTime;
@@ -81,12 +87,22 @@ private:
     int m_lives;
     RefPtr<Level> m_currentLevel;
     RefPtr<Paddle> m_paddle;
-    RefPtr<Ball> m_ball;
+    RefPtr<Ball> m_balls[MAX_BALLS];
     RefPtr<Sound> m_wallBounce;
+    RefPtr<Sound> m_lifeSound;
+    RefPtr<Sound> m_deathSound;
+    RefPtr<Sound> m_laserSound;
     Difficulty m_difficulty;
     int m_powerupChance;
     int m_powerdownChance;
     List<Powerup> m_powerups;
+    float m_previousBallSpeed;
+    RefPtr<Texture> m_extraBallTexture;
+    RefPtr<Texture> m_laserTexture;
+
+    static const int LASER_FIRE_DELAY = 30;    
+    List<LaserBeam> m_lasers;
+    int m_lastLaserFireTime;
 };
 
 #endif
