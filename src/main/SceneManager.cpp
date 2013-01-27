@@ -1,6 +1,5 @@
 #include "SceneManager.h"
 #include <kos.h>
-#include <oggvorbis/sndoggvorbis.h>
 
 SceneManager::SceneManager()
 {
@@ -9,15 +8,13 @@ SceneManager::SceneManager()
 void SceneManager::setup()
 {
     snd_stream_init();
-    sndoggvorbis_init();
 
     m_scene = new Scene();
 }
 
 void SceneManager::teardown()
 {
-    sndoggvorbis_shutdown();
-    spu_disable();
+    snd_stream_shutdown();
 }
 
 void SceneManager::draw()

@@ -36,12 +36,8 @@ Game::Game()
 }
 
 void Game::reset()
-{    
-    for (int i = 0; i < Powerup::BAD_EFFECT_MAX; i++)
-    {
-        m_activePowerups[i] = 0;
-    }
-    subRemoveFinished();
+{        
+    clearExtras();
     m_score = 0;
     m_extraLifeScoreMultiplier = 1;
     m_extraLifeScoreIncrement = 1000;
@@ -51,15 +47,95 @@ void Game::reset()
     m_difficulty = Game::Easy;
     m_paddle->setTranslate(Vector(296.0f, 428.0f, 10.0f));        
     m_balls[0]->reset();      
-    m_balls[0]->setTranslate(m_paddle->getPosition() + Vector(0.0f, -(m_balls[0]->getHeight() / 2), 0.0f));   
-    m_lasers.delAll();
-    m_powerups.delAll(); 
+    m_balls[0]->setTranslate(m_paddle->getPosition() + Vector(0.0f, -(m_balls[0]->getHeight() / 2), 0.0f));  
 }
 
 void Game::draw(int list)
 {
     subRemoveFinished();
     subDraw(list);
+    drawPowerups(list);
+    drawLasers(list);
+}
+
+void Game::clearExtras()
+{
+    for (int i = 0; i < Powerup::BAD_EFFECT_MAX; i++)
+    {
+        m_activePowerups[i] = 0;
+    } 
+
+    ListNode<Powerup>* powerup = m_powerups.getHead();
+	while (powerup) 
+    {
+        (*powerup)->setFinished();		
+		powerup = powerup->getNext();
+	}
+
+    ListNode<LaserBeam>* laser = m_lasers.getHead();
+	while (laser) 
+    {
+        (*laser)->setFinished();		
+		laser = laser->getNext();
+	}
+}
+
+void Game::drawPowerups(int list)
+{
+    if (list != PVR_LIST_TR_POLY)
+    {
+        return;
+    }
+
+    ListNode<Powerup>* t = m_powerups.getHead();
+    ListNode<Powerup>* n;
+	while (t) 
+    {
+        n = t->getNext();
+		if (!(*t)->isFinished())
+		{
+            (*t)->draw(list);
+            (*t)->nextFrame();
+        }
+        else
+        {
+            if (t)
+            {
+                t->remove();
+			    delete t; 
+            }
+        }
+		t = n;
+	}
+}
+
+void Game::drawLasers(int list)
+{
+    if (list != PVR_LIST_TR_POLY)
+    {
+        return;
+    }
+
+    ListNode<LaserBeam>* t = m_lasers.getHead();
+    ListNode<LaserBeam>* n;
+	while (t) 
+    {
+        n = t->getNext();
+		if (!(*t)->isFinished())
+		{
+            (*t)->draw(list);
+            (*t)->nextFrame();
+        }
+        else
+        {
+            if (t)
+            {
+                t->remove();
+			    delete t; 
+            }
+        }
+		t = n;
+	}
 }
 
 void Game::createPaddle()
@@ -81,22 +157,21 @@ void Game::createBall(const char* textureName)
     subAdd(m_balls[0]);
 }
 
-void Game::loadLevel(int level)
-{    
-    subRemoveFinished();   
-    m_lasers.delAll();
-    m_powerups.delAll();
+bool Game::loadLevel(int level)
+{        
+    clearExtras();
+    subRemoveFinished(); 
     m_lastLaserFireTime = LASER_FIRE_DELAY;
     m_balls[0]->reset();       
     m_levelNumber = level;
-    m_currentLevel->load(m_levelNumber);
+    return m_currentLevel->load(m_levelNumber);
 }
 
 void Game::onLostBall()
 {
     m_lives--;
     m_deathSound->play();
-    if (m_lives > 0)
+    if (m_lives >= 0)
     {
         m_balls[0]->setTranslate(m_paddle->getPosition() + Vector(0.0f, -(m_balls[0]->getHeight() / 2), 0.0f));
         m_balls[0]->reset();
@@ -291,19 +366,9 @@ int Game::checkLaserBeamCollisions()
             int laserScore = m_currentLevel->checkCollision(laser);
             if (laserScore > 0)
             {
-                laser->setFinished(); 
-                subRemove(laser);
-                t->remove();
-			    delete t;  
+                laser->setFinished();                
             }
-        }
-        else
-        {
-            LaserBeam* laser = (LaserBeam*)t->getData();
-            subRemove(laser);
-            t->remove();
-			delete t;  
-        }
+        }        
 		t = n;
 	}
 
@@ -336,13 +401,6 @@ void Game::checkPowerups()
                 }
             }
         }
-        else
-        {
-            Powerup* powerup = (Powerup*)t->getData();
-            subRemove(powerup);
-            t->remove();
-			delete t; 
-        }
 		t = n;
 	}
 }
@@ -352,55 +410,51 @@ void Game::activatePowerup(Powerup* powerup)
     Powerup::Effect effect = powerup->getEffect();
         
     // Don't want to activate if we're already activated.
-    if (isPowerupActive(effect))
+    if (!isPowerupActive(effect))
     {        
-        subRemove(powerup);
-        m_powerups.del(powerup);
-        return;
-    }
-
-    // Set up any powerup-specific stuff in here.
-    switch (effect)
-    {
-    case Powerup::ExtendPaddle:
-        m_paddle->setScale(Vector(2.0f, 1.0f, 1.0f));
-        break;
-    case Powerup::ExtraBalls:
-        for (int i = 1; i < MAX_BALLS; i++)
+        // Set up any powerup-specific stuff in here.
+        switch (effect)
         {
-            m_balls[i] = new Ball(m_extraBallTexture);
-            m_balls[i]->setTranslate(m_balls[0]->getPosition());
-            m_balls[i]->setSpeed(m_balls[0]->getSpeed());
-            // Apply a random bounce, but make sure Y is moving up so
-            // that the bonus balls don't immediately streak towards the
-            // exit.
-            m_balls[i]->doRandomBounce(true);
-            subAdd(m_balls[i]);
-        }
-        break;
-    case Powerup::Powerball:
-        break;
-    case Powerup::LaserPaddle:        
-        break;   
-    case Powerup::ShrinkPaddle:
-        m_paddle->setScale(Vector(0.5f, 1.0f, 1.0f));
-        break;
-    case Powerup::DoubleBallSpeed:            
-        m_previousBallSpeed = m_balls[0]->getSpeed();
-        for (int i = 0; i < MAX_BALLS; i++)
-        {
-            if (!m_balls[i] || m_balls[i]->isFinished())
+        case Powerup::ExtendPaddle:
+            m_paddle->setScale(Vector(2.0f, 1.0f, 1.0f));
+            break;
+        case Powerup::ExtraBalls:
+            for (int i = 1; i < MAX_BALLS; i++)
             {
-                continue;
+                m_balls[i] = new Ball(m_extraBallTexture);
+                m_balls[i]->setTranslate(m_balls[0]->getPosition());
+                m_balls[i]->setSpeed(m_balls[0]->getSpeed());
+                // Apply a random bounce, but make sure Y is moving up so
+                // that the bonus balls don't immediately streak towards the
+                // exit.
+                m_balls[i]->doRandomBounce(true);
+                subAdd(m_balls[i]);
             }
-            m_balls[i]->setSpeed(m_previousBallSpeed*1.5f);
-            m_balls[i]->updateVelocity();
+            break;
+        case Powerup::Powerball:
+            break;
+        case Powerup::LaserPaddle:        
+            break;   
+        case Powerup::ShrinkPaddle:
+            m_paddle->setScale(Vector(0.5f, 1.0f, 1.0f));
+            break;
+        case Powerup::DoubleBallSpeed:            
+            m_previousBallSpeed = m_balls[0]->getSpeed();
+            for (int i = 0; i < MAX_BALLS; i++)
+            {
+                if (!m_balls[i] || m_balls[i]->isFinished())
+                {
+                    continue;
+                }
+                m_balls[i]->setSpeed(m_previousBallSpeed*1.5f);
+                m_balls[i]->updateVelocity();
+            }
+            break;
+        case Powerup::RandomBounce: 
+            break;
+        default:
+            break;
         }
-        break;
-    case Powerup::RandomBounce: 
-        break;
-    default:
-        break;
     }
 
     if ((int)effect < (int)Powerup::GOOD_EFFECT_MAX)
@@ -412,8 +466,7 @@ void Game::activatePowerup(Powerup* powerup)
         m_activePowerups[(int)effect] = m_powerdownActiveTime;
     }
 
-    subRemove(powerup);
-    m_powerups.del(powerup);
+    powerup->setFinished();
 }
 
 void Game::deactivatePowerup(Powerup::Effect effect)
@@ -462,7 +515,6 @@ void Game::spawnPowerups(const Vector& position)
         }
         RefPtr<Powerup> powerup = new Powerup(effect, position);
         m_powerups.insertHead(powerup);
-        subAdd(powerup);
         return;
     }
 
@@ -477,7 +529,6 @@ void Game::spawnPowerups(const Vector& position)
         }
         RefPtr<Powerup> powerup = new Powerup(effect, position);
         m_powerups.insertHead(powerup);
-        subAdd(powerup);
         return;
     }    
 }
@@ -502,7 +553,6 @@ void Game::updateControls()
                 RefPtr<LaserBeam> laser = new LaserBeam(m_laserTexture);
                 laser->setTranslate(m_paddle->getPosition());
                 m_lasers.insertHead(laser);
-                subAdd(laser);
             }
         }
     }

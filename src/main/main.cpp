@@ -9,12 +9,57 @@
 #include "Game.h"
 #include <time.h>
 #include <stdlib.h>
-#include <oggvorbis/sndoggvorbis.h>
+#include <math.h>
 
 extern uint8 romdisk[];
 KOS_INIT_ROMDISK(romdisk);
 
 KOS_INIT_FLAGS(INIT_DEFAULT | INIT_NO_DCLOAD | INIT_QUIET);
+
+bool hasColorReachedTarget(float color, float targetColor, float increment)
+{
+    return (fabs(color - targetColor) <= increment);    
+}
+
+float moveColorTowardsTarget(float color, float targetColor, float increment)
+{
+    float newColor = color;
+    if (newColor < targetColor)
+    {
+        newColor += increment;
+    }
+    else
+    {
+        newColor -= increment;
+    }
+    return newColor;
+}
+
+Color adjustBGColor(const Color& currentBGColor, Color& bgTint)
+{    
+    static float tintIncrement = 1.0f / (3 * 60);
+    Color newColor = currentBGColor;
+
+    if (hasColorReachedTarget(newColor.r, bgTint.r, tintIncrement))
+    {
+        bgTint.r = rand() % 256 / 255.0f;
+    }        
+    newColor.r = moveColorTowardsTarget(newColor.r, bgTint.r, tintIncrement);
+
+    if (hasColorReachedTarget(newColor.g, bgTint.g, tintIncrement))
+    {
+        bgTint.g = rand() % 256 / 255.0f;
+    }   
+    newColor.g = moveColorTowardsTarget(newColor.g, bgTint.g, tintIncrement);
+
+    if (hasColorReachedTarget(newColor.b, bgTint.b, tintIncrement))
+    {
+        bgTint.b = rand() % 256 / 255.0f;
+    }        
+    newColor.b = moveColorTowardsTarget(newColor.b, bgTint.b, tintIncrement);
+
+    return newColor;
+}
 
 int main(int argc, char** argv)
 {        
@@ -24,12 +69,10 @@ int main(int argc, char** argv)
     
     SceneManager sceneManager;
     sceneManager.setup();
-
-    sndoggvorbis_start("/cd/music/brechen.ogg", 0);
+    
     RefPtr<TitleScreen> titleScreen = new TitleScreen();
     titleScreen->doMenu();
     int difficulty = titleScreen->getDifficultySelection();
-    sndoggvorbis_stop();
     
     pvr_set_bg_color(0.0f, 0.0f, 0.2f);
     
@@ -54,14 +97,22 @@ int main(int argc, char** argv)
     bg->setTranslate(Vector(
         Border::LEFT_BORDER + bgTexture->getW() / 2, 
         Border::TOP_BORDER + bgTexture->getH() / 2, 9));
+    Color bgTint(rand() % 256 / 255.0f, rand() % 256 / 255.0f, rand() % 256 / 255.0f);   
 
     sceneManager.addDrawable(bg);
             
     bool done = false;
     while (!done) 
     {
+        bool backToTitleScreen = true;
+
         if (game->getLives() > 0)
         {
+            backToTitleScreen = false;
+            
+            Color newBGColor = adjustBGColor(bg->getTint(), bgTint);
+            bg->setTint(newBGColor);
+
             sceneManager.draw();
 
             int oldScore = game->getScore();
@@ -79,21 +130,25 @@ int main(int argc, char** argv)
                 mainUI->updateLivesLabel(game->getLives());
             }
 
+            game->updateControls();
+
             if (game->getLevel()->isCompleted())
             {            
-                game->loadLevel(game->getLevelNumber() + 1);  
-                mainUI->updateLevelLabel(game->getLevelNumber());
+                if (game->loadLevel(game->getLevelNumber() + 1))
+                {
+                    mainUI->updateLevelLabel(game->getLevelNumber());
+                }
+                else
+                {
+                    backToTitleScreen = true;
+                }
             }
-
-            game->updateControls();
         }
-        else
+        if (backToTitleScreen)
         {            
-            sndoggvorbis_start("/cd/music/brechen.ogg", 0);
             titleScreen = new TitleScreen();
             titleScreen->doMenu();
-            int difficulty = titleScreen->getDifficultySelection();            
-            sndoggvorbis_stop();
+            int difficulty = titleScreen->getDifficultySelection();     
             game->reset();            
             game->setDifficulty((Game::Difficulty)difficulty);    
             game->loadLevel(1);
@@ -101,6 +156,7 @@ int main(int argc, char** argv)
             mainUI->updateLivesLabel(game->getLives());
             mainUI->updateLevelLabel(game->getLevelNumber());
             pvr_set_bg_color(0.0f, 0.0f, 0.2f);
+            backToTitleScreen = false;
         }
     }
     

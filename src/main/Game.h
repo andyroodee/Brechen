@@ -29,7 +29,7 @@ public:
     int checkLaserBeamCollisions();
     void updateControls();
 
-    void loadLevel(int levelNumber);
+    bool loadLevel(int levelNumber);
 
     void onLostBall();
 
@@ -74,6 +74,9 @@ private:
     void checkPowerups();
     void activatePowerup(Powerup* powerup);
     void deactivatePowerup(Powerup::Effect effect);
+    void drawPowerups(int list);
+    void drawLasers(int list);
+    void clearExtras();
 
     static const int MAX_BALLS = 3;
 

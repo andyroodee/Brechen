@@ -31,7 +31,7 @@ public:
 
     Level(Game* parent);
 
-    void load(int levelNumber);
+    bool load(int levelNumber);
 
     bool isCompleted() const;
 

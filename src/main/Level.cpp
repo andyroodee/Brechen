@@ -16,7 +16,7 @@ bool Level::isCompleted() const
     return (m_brickCount == m_destroyedBrickCount);
 }
 
-void Level::load(int levelNumber)
+bool Level::load(int levelNumber)
 {
     unload();
 
@@ -24,6 +24,11 @@ void Level::load(int levelNumber)
     sprintf(levelName, "/cd/levels/%s%d", "level", levelNumber);
 
     FILE* file = fopen(levelName, "rb");
+
+    if (!file)
+    {
+        return false;
+    }
    
     int numberOfBrickRecords = 0;
     fread(&numberOfBrickRecords, sizeof(int), 1, file);
@@ -51,6 +56,8 @@ void Level::load(int levelNumber)
     }
 
     fclose(file);
+
+    return true;
 }
 
 void Level::unload()
@@ -62,8 +69,13 @@ void Level::unload()
 
 void Level::draw(int list)
 {
-    ListNode<Drawable>* t = (ListNode<Drawable>*)m_bricks.getHead();
-    ListNode<Drawable>* n;
+    if (list != PVR_LIST_TR_POLY)
+    {
+        return;
+    }
+
+    ListNode<Brick>* t = m_bricks.getHead();
+    ListNode<Brick>* n;
 	while (t) 
     {
         n = t->getNext();
@@ -74,8 +86,11 @@ void Level::draw(int list)
         }
         else
         {
-            Brick* brick = (Brick*)t->getData();
-            m_bricks.del(brick);  
+            if (t)
+            {
+                t->remove();
+			    delete t; 
+            }
         }
 		t = n;
 	}
@@ -116,6 +131,7 @@ int Level::checkCollision(Ball* ball)
     const Vector& ballPosition = ball->getPosition();
     
     int score = 0;
+    bool hasBounced = false;
 
     ListNode<Brick>* brickNode = m_bricks.getHead();
     while (brickNode)
@@ -124,7 +140,10 @@ int Level::checkCollision(Ball* ball)
 
         if (brick->getIsAlive() && ball->intersectsWith(brick))
         {
-            m_brickBounce->play();
+            if (!hasBounced)
+            {
+                m_brickBounce->play();
+            }
 
             const Vector& brickPosition = brick->getPosition();
             const int halfBrickHeight = brick->getHeight() / 2;
@@ -169,14 +188,20 @@ int Level::checkCollision(Ball* ball)
             else
             {
                 brick->animateDestruction(ball->getVelocity(), ball->getSpeed() * 3);   
-                ball->setVelocity(newBallVelocity);          
-            }
-            
-            if (m_parentGame->isPowerupActive(Powerup::RandomBounce))
-            {
-                ball->doRandomBounce();
-            }
+                if (!hasBounced)
+                {
+                    if (m_parentGame->isPowerupActive(Powerup::RandomBounce))
+                    {
+                        ball->doRandomBounce();
+                    }
+                    else
+                    {
+                        ball->setVelocity(newBallVelocity);     
+                    }                    
+                }
+            }           
 
+            hasBounced = true;
             score += brick->getValue();
             brickNode = brickNode->getNext();
             ++m_destroyedBrickCount;      
