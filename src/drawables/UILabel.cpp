@@ -32,5 +32,5 @@ void UILabel::draw(int list)
 	m_font->setSize(m_fontSize);
 	m_font->setAlpha(t.a);
 	m_font->setColor(t.r, t.g, t.b);
-	m_font->draw(p.x, p.y, p.z, m_text);
+	m_font->smearDraw(p.x, p.y, p.z, m_text);
 }

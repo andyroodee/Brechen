@@ -80,9 +80,9 @@ private:
 
     static const int MAX_BALLS = 3;
 
-    unsigned int m_activePowerups[Powerup::BAD_EFFECT_MAX];
-    unsigned int m_powerupActiveTime;
-    unsigned int m_powerdownActiveTime;
+    int m_activePowerups[Powerup::BAD_EFFECT_MAX];
+    int m_powerupActiveTime;
+    int m_powerdownActiveTime;
     int m_score;
     int m_extraLifeScoreMultiplier;
     int m_extraLifeScoreIncrement;

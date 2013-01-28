@@ -69,7 +69,7 @@ int main(int argc, char** argv)
     
     SceneManager sceneManager;
     sceneManager.setup();
-    
+
     RefPtr<TitleScreen> titleScreen = new TitleScreen();
     titleScreen->doMenu();
     int difficulty = titleScreen->getDifficultySelection();

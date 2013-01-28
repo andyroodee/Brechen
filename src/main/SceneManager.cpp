@@ -8,7 +8,7 @@ SceneManager::SceneManager()
 void SceneManager::setup()
 {
     snd_stream_init();
-
+    
     m_scene = new Scene();
 }
 

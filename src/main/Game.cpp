@@ -63,20 +63,25 @@ void Game::clearExtras()
     for (int i = 0; i < Powerup::BAD_EFFECT_MAX; i++)
     {
         m_activePowerups[i] = 0;
+        deactivatePowerup((Powerup::Effect)i);
     } 
 
     ListNode<Powerup>* powerup = m_powerups.getHead();
+    ListNode<Powerup>* nextPowerup;
 	while (powerup) 
     {
+        nextPowerup = powerup->getNext();
         (*powerup)->setFinished();		
-		powerup = powerup->getNext();
+		powerup = nextPowerup;
 	}
 
     ListNode<LaserBeam>* laser = m_lasers.getHead();
+    ListNode<LaserBeam>* nextLaser;
 	while (laser) 
     {
+        nextLaser = laser->getNext();
         (*laser)->setFinished();		
-		laser = laser->getNext();
+		laser = nextLaser;
 	}
 }
 
@@ -160,7 +165,6 @@ void Game::createBall(const char* textureName)
 bool Game::loadLevel(int level)
 {        
     clearExtras();
-    subRemoveFinished(); 
     m_lastLaserFireTime = LASER_FIRE_DELAY;
     m_balls[0]->reset();       
     m_levelNumber = level;
@@ -409,6 +413,7 @@ void Game::activatePowerup(Powerup* powerup)
 {
     Powerup::Effect effect = powerup->getEffect();
         
+    int bonus = 1;
     // Don't want to activate if we're already activated.
     if (!isPowerupActive(effect))
     {        
@@ -430,6 +435,10 @@ void Game::activatePowerup(Powerup* powerup)
                 m_balls[i]->doRandomBounce(true);
                 subAdd(m_balls[i]);
             }
+            // Little hack to make extra balls last a while longer than other powerups.
+            // Ideally I'd have specified individual powerup activation times in an array or as part of a structure,
+            // but I'm out of time.
+            bonus = 10;
             break;
         case Powerup::Powerball:
             break;
@@ -459,7 +468,7 @@ void Game::activatePowerup(Powerup* powerup)
 
     if ((int)effect < (int)Powerup::GOOD_EFFECT_MAX)
     {
-        m_activePowerups[(int)effect] = m_powerupActiveTime;
+        m_activePowerups[(int)effect] = m_powerupActiveTime * bonus;
     }
     else
     {
@@ -494,7 +503,10 @@ void Game::deactivatePowerup(Powerup::Effect effect)
     case Powerup::ExtraBalls:
         for (int i = 1; i < MAX_BALLS; i++)
         {
-            m_balls[i]->setFinished();
+            if (m_balls[i])
+            {
+                m_balls[i]->setFinished();
+            }
         }
         break;
     default:

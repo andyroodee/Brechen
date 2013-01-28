@@ -13,7 +13,7 @@ Level::Level(Game* parentGame)
 
 bool Level::isCompleted() const
 {
-    return (m_brickCount == m_destroyedBrickCount);
+    return (m_destroyedBrickCount >= m_brickCount);
 }
 
 bool Level::load(int levelNumber)
@@ -30,11 +30,10 @@ bool Level::load(int levelNumber)
         return false;
     }
    
-    int numberOfBrickRecords = 0;
-    fread(&numberOfBrickRecords, sizeof(int), 1, file);
+    fread(&m_brickCount, sizeof(int), 1, file);
    
     BrickRecord brickRecord;
-    while (m_brickCount < numberOfBrickRecords && fread(&brickRecord, sizeof(BrickRecord), 1, file))
+    while (fread(&brickRecord, sizeof(BrickRecord), 1, file))
     {        
         RefPtr<Brick> brick = new Brick(brickRecord.width * 8, brickRecord.height * 8);    
 
@@ -52,7 +51,6 @@ bool Level::load(int levelNumber)
             10.0f));
 
         m_bricks.insertHead(brick);
-        ++m_brickCount;
     }
 
     fclose(file);
@@ -98,6 +96,10 @@ void Level::draw(int list)
 
 int Level::checkCollision(LaserBeam* laser)
 {
+    if (!laser)
+    {
+        return 0;
+    }
     int score = 0;
 
     ListNode<Brick>* brickNode = m_bricks.getHead();
@@ -105,7 +107,7 @@ int Level::checkCollision(LaserBeam* laser)
     {
         Brick* brick = brickNode->getData();
 
-        if (brick->getIsAlive() && laser->isHitting(brick))
+        if (brick && brick->getIsAlive() && laser->isHitting(brick))
         {
             // TODO: Play a special laser destruction sound.
             m_brickBounce->play();
@@ -128,6 +130,11 @@ int Level::checkCollision(LaserBeam* laser)
 
 int Level::checkCollision(Ball* ball)
 {
+    if (!ball)
+    {
+        return 0;
+    }
+
     const Vector& ballPosition = ball->getPosition();
     
     int score = 0;
@@ -138,7 +145,7 @@ int Level::checkCollision(Ball* ball)
     {
         Brick* brick = brickNode->getData();
 
-        if (brick->getIsAlive() && ball->intersectsWith(brick))
+        if (brick && brick->getIsAlive() && ball->intersectsWith(brick))
         {
             if (!hasBounced)
             {
