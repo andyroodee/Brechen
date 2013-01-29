@@ -334,6 +334,18 @@ void Game::checkCollisions()
         }
     }
 
+    // Handle the extra balls getting passed the paddle
+    for (int i = 1; i < MAX_BALLS; i++)
+    {
+        if (m_balls[i] && !m_balls[i]->isFinished())
+        {
+            if (m_balls[i]->getPosition().y >= Border::BOTTOM_BORDER)
+            {
+                m_balls[i]->setFinished();
+            }
+        }
+    }
+
     if (m_balls[0]->getPosition().y >= Border::BOTTOM_BORDER)
     {
         onLostBall();
