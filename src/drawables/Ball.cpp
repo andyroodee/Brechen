@@ -115,7 +115,7 @@ void Ball::draw(int list)
 	w *= sv.x;
 	h *= sv.y;
 
-    if (fabs(m_velocity.y - 0.0f) < 0.1f)
+    if (m_isLaunched && fabs(m_velocity.y - 0.0f) < 0.1f)
     {
         m_velocity.y = 1.0f;
     }

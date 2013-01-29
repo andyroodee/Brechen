@@ -6,6 +6,7 @@
 #include <tsu/vector.h>
 #include <plx/list.h>
 #include <plx/sprite.h>
+#include <math.h>
 
 class Brick;
 
@@ -59,7 +60,7 @@ public:
 
     void setSpeed(float speed)
     {
-        m_speed = speed;
+        m_speed = fabs(speed);
     }
 
     void doRandomBounce(bool forceUpdwardBounce = true);

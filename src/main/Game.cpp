@@ -166,7 +166,22 @@ bool Game::loadLevel(int level)
 {        
     clearExtras();
     m_lastLaserFireTime = LASER_FIRE_DELAY;
-    m_balls[0]->reset();       
+    m_balls[0]->reset();   
+    switch (m_difficulty)
+    {
+    case Easy:
+        m_balls[0]->setSpeed(4.0f);
+        break;
+    case Medium:
+        m_balls[0]->setSpeed(5.0f);
+        break;
+    case Hard:
+        m_balls[0]->setSpeed(6.0f);
+        break;
+    default:
+        m_balls[0]->setSpeed(4.0f);
+        break;
+    }
     m_levelNumber = level;
     return m_currentLevel->load(m_levelNumber);
 }
